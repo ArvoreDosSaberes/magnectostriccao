@@ -10,3 +10,8 @@ Diante desse cenário, este projeto propõe um sistema inovador de monitoramento
 O drone terrestre recebe comandos do computador de borda, que mantém um mapa atualizado da estação de distribuição e integra dados de um sistema de GPS. Dessa forma, o monitoramento se torna automatizado e preciso, reduzindo riscos operacionais e aumentando a eficiência na detecção de falhas incipientes nos transformadores.
 
 [Aprsentação do Projeto em Vídeo no Youtube](https://youtu.be/AHvlCWeeA88?si=6y2-KHquPNgekdsO)
+
+# Analise de Saude de Transformadores usando Magnectostricção
+
+* https://medium.com/@subirmaity/tinyml-implementation-using-raspberry-pi-pico-geometry-gesture-detection-part-ii-d3d83a5d8cdb
+
