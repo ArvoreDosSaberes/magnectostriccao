@@ -94,8 +94,8 @@ FILE(GLOB FreeRTOS_portable_common_src ${FREERTOS_KERNEL_PATH}/portable/Common/*
 add_library( FreeRTOS-Kernel STATIC
 	${FreeRTOS_src}
     ${FreeRTOS_portable_common_src}
-	${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/port.c
-	#${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/portasm.c
+	${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure/port.c
+	${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure/portasm.c
 	${FREERTOS_KERNEL_PATH}/portable/MemMang/heap_4.c
 )
 
@@ -108,7 +108,7 @@ target_link_libraries( FreeRTOS-Kernel PUBLIC
 target_include_directories( FreeRTOS-Kernel PUBLIC 
         ${FREERTOS_KERNEL_PATH}/include
 		tasks/
-		${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2040/include
+		${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure
 )
 
 target_link_libraries( ${PROJECT_NAME} 
