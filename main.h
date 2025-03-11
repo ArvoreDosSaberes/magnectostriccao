@@ -1,7 +1,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#include "lwip/tcp.h"
+//#include "lwip/tcp.h"
 
 #define abs(x) ((x < 0) ? (-x) : (x))
 
@@ -79,8 +79,8 @@
 
 static void start_http_server(void);
 static void create_http_response();
-static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
-static err_t connection_callback(void *arg, struct tcp_pcb *newpcb, err_t err);
+//static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
+//static err_t connection_callback(void *arg, struct tcp_pcb *newpcb, err_t err);
 static void monitor_buttons_callback(unsigned int gpio, long unsigned int events);
 
 static void show_intro();

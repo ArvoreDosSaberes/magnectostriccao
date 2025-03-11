@@ -14,7 +14,7 @@
 #include <ctype.h>
 #include "pico/binary_info.h"
 #include "pico/stdlib.h"
-#include "pico/cyw43_arch.h"
+//#include "pico/cyw43_arch.h"
 #include "hardware/clocks.h"
 
 #include "hardware/adc.h"
@@ -22,7 +22,7 @@
 
 #include "hardware/i2c.h"
 
-#include "lwip/tcp.h"
+//#include "lwip/tcp.h"
 
 #include "inc/ssd1306.h"
 
@@ -91,9 +91,9 @@ int main()
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  if(!start_network_infrastructure()) return 1;
+  //if(!start_network_infrastructure()) return 1;
 
-  sleep_ms(INTER_SCREEN_DELAY);
+  //sleep_ms(INTER_SCREEN_DELAY);
 
   if(!start_gpio_and_drone_control()) return 1;
 
@@ -708,174 +708,174 @@ bool start_gpio_and_drone_control(){
 /**
  * Inicia a infraestrutura de rede.
  */
-bool start_network_infrastructure(){
-  if (cyw43_arch_init_with_country(CYW43_COUNTRY_BRAZIL))
-  {
-    strcpy(text_line_oled[0], "    ATENCAO    ");
-    strcpy(text_line_oled[1], "    FALHA NA   ");
-    strcpy(text_line_oled[2], "               ");
-    strcpy(text_line_oled[3], " Infraestrutra ");
-    strcpy(text_line_oled[4], "    de Rede    ");
-    strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], "     Wi-FI     ");
-    strcpy(text_line_oled[7], "               ");
+// bool start_network_infrastructure(){
+//   if (cyw43_arch_init_with_country(CYW43_COUNTRY_BRAZIL))
+//   {
+//     strcpy(text_line_oled[0], "    ATENCAO    ");
+//     strcpy(text_line_oled[1], "    FALHA NA   ");
+//     strcpy(text_line_oled[2], "               ");
+//     strcpy(text_line_oled[3], " Infraestrutra ");
+//     strcpy(text_line_oled[4], "    de Rede    ");
+//     strcpy(text_line_oled[5], "               ");
+//     strcpy(text_line_oled[6], "     Wi-FI     ");
+//     strcpy(text_line_oled[7], "               ");
 
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
-    return false;
-  }
+//     uint8_t y = 0;
+//     for (uint i = 0; i < count_of(text_line_oled); i++)
+//     {
+//       ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
+//       y += ssd1306_line_height;
+//     }
+//     render_on_display(ssd, &frame_area);
+//     return false;
+//   }
 
-  cyw43_arch_enable_sta_mode();
-  uint8_t count = 0;
-  while(count < 3 && cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 10000) != 0){
-    strcpy(text_line_oled[0], "    ATENCAO    ");
-    strcpy(text_line_oled[1], "    FALHA NA   ");
-    strcpy(text_line_oled[2], "               ");
-    strcpy(text_line_oled[3], " Infraestrutra ");
-    strcpy(text_line_oled[4], "    de Rede    ");
-    strcpy(text_line_oled[5], "     Wi-FI     ");
-    strcpy(text_line_oled[6], " NAO CONECTADO ");
-    sprintf(text_line_oled[7], " Tentativa: %02d", ++count);
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
-    sleep_ms(INTER_SCREEN_DELAY/(1.0/3));
-  }
+//   cyw43_arch_enable_sta_mode();
+//   uint8_t count = 0;
+//   while(count < 3 && cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 10000) != 0){
+//     strcpy(text_line_oled[0], "    ATENCAO    ");
+//     strcpy(text_line_oled[1], "    FALHA NA   ");
+//     strcpy(text_line_oled[2], "               ");
+//     strcpy(text_line_oled[3], " Infraestrutra ");
+//     strcpy(text_line_oled[4], "    de Rede    ");
+//     strcpy(text_line_oled[5], "     Wi-FI     ");
+//     strcpy(text_line_oled[6], " NAO CONECTADO ");
+//     sprintf(text_line_oled[7], " Tentativa: %02d", ++count);
+//     uint8_t y = 0;
+//     for (uint i = 0; i < count_of(text_line_oled); i++)
+//     {
+//       ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
+//       y += ssd1306_line_height;
+//     }
+//     render_on_display(ssd, &frame_area);
+//     sleep_ms(INTER_SCREEN_DELAY/(1.0/3));
+//   }
     
-  if (count==3) return false;
+//   if (count==3) return false;
   
-  // Read the ip address in a human readable way
-  uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
-  strcpy(text_line_oled[0], " INICIALIZANDO ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[3], " Infraestrutra ");
-  strcpy(text_line_oled[4], "    de Rede    ");
-  strcpy(text_line_oled[5], "     Wi-FI     ");
-  strcpy(text_line_oled[6], "   CONECTADO   ");
-  strcpy(text_line_oled[2], "               ");
-  sprintf(text_line_oled[7], "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+//   // Read the ip address in a human readable way
+//   uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
+//   strcpy(text_line_oled[0], " INICIALIZANDO ");
+//   strcpy(text_line_oled[1], "               ");
+//   strcpy(text_line_oled[3], " Infraestrutra ");
+//   strcpy(text_line_oled[4], "    de Rede    ");
+//   strcpy(text_line_oled[5], "     Wi-FI     ");
+//   strcpy(text_line_oled[6], "   CONECTADO   ");
+//   strcpy(text_line_oled[2], "               ");
+//   sprintf(text_line_oled[7], "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
+//   uint8_t y = 0;
+//   for (uint i = 0; i < count_of(text_line_oled); i++)
+//   {
+//     ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
+//     y += ssd1306_line_height;
+//   }
+//   render_on_display(ssd, &frame_area);
 
-  // Inicia o servidor HTTP
-  start_http_server();
-  BaseType_t xReturn = xTaskCreate(
-    task_http_server, 
-    "Task HTTP Server", 
-    TASK_HTTP_SERVER_STACK_SIZE, 
-    NULL, 
-    TASK_HTTP_SERVER_PRIORITY, 
-    NULL);
+//   // Inicia o servidor HTTP
+//   start_http_server();
+//   BaseType_t xReturn = xTaskCreate(
+//     task_http_server, 
+//     "Task HTTP Server", 
+//     TASK_HTTP_SERVER_STACK_SIZE, 
+//     NULL, 
+//     TASK_HTTP_SERVER_PRIORITY, 
+//     NULL);
 
-  if (xReturn != pdPASS) {
-    strcpy(text_line_oled[0], "     FALHA     ");
-    strcpy(text_line_oled[1], " AO CRIAR TASK ");
-    strcpy(text_line_oled[2], "      RTOS     ");
-    strcpy(text_line_oled[3], "               ");
-    strcpy(text_line_oled[4], "               ");
-    strcpy(text_line_oled[5], " INFRAESTRUTURA");
-    strcpy(text_line_oled[6], "     REDE      ");
-    strcpy(text_line_oled[7], "               ");
+//   if (xReturn != pdPASS) {
+//     strcpy(text_line_oled[0], "     FALHA     ");
+//     strcpy(text_line_oled[1], " AO CRIAR TASK ");
+//     strcpy(text_line_oled[2], "      RTOS     ");
+//     strcpy(text_line_oled[3], "               ");
+//     strcpy(text_line_oled[4], "               ");
+//     strcpy(text_line_oled[5], " INFRAESTRUTURA");
+//     strcpy(text_line_oled[6], "     REDE      ");
+//     strcpy(text_line_oled[7], "               ");
 
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+//     uint8_t y = 0;
+//     for (uint i = 0; i < count_of(text_line_oled); i++)
+//     {
+//       ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
+//       y += ssd1306_line_height;
+//     }
+//     render_on_display(ssd, &frame_area);
 
-    sleep_ms(INTER_SCREEN_DELAY * 6);
-    return false;
-  }
-  return true;
+//     sleep_ms(INTER_SCREEN_DELAY * 6);
+//     return false;
+//   }
+//   return true;
 
-}
+// }
 
 // #########################################
 //                WIFI e WEB Server
 
 // Função de setup do servidor TCP
-static void start_http_server(void)
-{
-  struct tcp_pcb *pcb = tcp_new();
-  if (!pcb)
-  {
-    strcpy(text_line_oled[0], " INICIALIZANDO ");
-    strcpy(text_line_oled[1], "               ");
-    strcpy(text_line_oled[2], " Infraestrutra ");
-    strcpy(text_line_oled[3], "    de Rede    ");
-    strcpy(text_line_oled[4], "     Wi-FI     ");
-    strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], " Erro criando  ");;
-    strcpy(text_line_oled[7], "      PCB      ");
+// static void start_http_server(void)
+// {
+//   struct tcp_pcb *pcb = tcp_new();
+//   if (!pcb)
+//   {
+//     strcpy(text_line_oled[0], " INICIALIZANDO ");
+//     strcpy(text_line_oled[1], "               ");
+//     strcpy(text_line_oled[2], " Infraestrutra ");
+//     strcpy(text_line_oled[3], "    de Rede    ");
+//     strcpy(text_line_oled[4], "     Wi-FI     ");
+//     strcpy(text_line_oled[5], "               ");
+//     strcpy(text_line_oled[6], " Erro criando  ");;
+//     strcpy(text_line_oled[7], "      PCB      ");
 
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
-    return;
-  }
+//     uint8_t y = 0;
+//     for (uint i = 0; i < count_of(text_line_oled); i++)
+//     {
+//       ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
+//       y += ssd1306_line_height;
+//     }
+//     render_on_display(ssd, &frame_area);
+//     return;
+//   }
 
-  // Liga o servidor na porta 80
-  if (tcp_bind(pcb, IP_ADDR_ANY, 80) != ERR_OK)
-  {
-  strcpy(text_line_oled[0], " INICIALIZANDO ");
-    strcpy(text_line_oled[1], "               ");
-    strcpy(text_line_oled[2], " Infraestrutra ");
-    strcpy(text_line_oled[3], "    de Rede    ");
-    strcpy(text_line_oled[4], "     Wi-FI     ");
-    strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], " Erro conectar ");;
-    strcpy(text_line_oled[7], " serv. porta 80");
+//   // Liga o servidor na porta 80
+//   if (tcp_bind(pcb, IP_ADDR_ANY, 80) != ERR_OK)
+//   {
+//   strcpy(text_line_oled[0], " INICIALIZANDO ");
+//     strcpy(text_line_oled[1], "               ");
+//     strcpy(text_line_oled[2], " Infraestrutra ");
+//     strcpy(text_line_oled[3], "    de Rede    ");
+//     strcpy(text_line_oled[4], "     Wi-FI     ");
+//     strcpy(text_line_oled[5], "               ");
+//     strcpy(text_line_oled[6], " Erro conectar ");;
+//     strcpy(text_line_oled[7], " serv. porta 80");
 
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
-    return;
-  }
+//     uint8_t y = 0;
+//     for (uint i = 0; i < count_of(text_line_oled); i++)
+//     {
+//       ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
+//       y += ssd1306_line_height;
+//     }
+//     render_on_display(ssd, &frame_area);
+//     return;
+//   }
 
-  pcb = tcp_listen(pcb);                // Coloca o PCB em modo de escuta
-  tcp_accept(pcb, connection_callback); // Associa o callback de conexão
+//   pcb = tcp_listen(pcb);                // Coloca o PCB em modo de escuta
+//   tcp_accept(pcb, connection_callback); // Associa o callback de conexão
 
-    strcpy(text_line_oled[0], " INICIALIZANDO ");
-    strcpy(text_line_oled[1], "               ");
-    strcpy(text_line_oled[2], " Infraestrutra ");
-    strcpy(text_line_oled[3], "    de Rede    ");
-    strcpy(text_line_oled[4], "     Wi-FI     ");
-    strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], " SERRVIDOR WEB ");;
-    strcpy(text_line_oled[7], "   CONECTADO   ");
+//     strcpy(text_line_oled[0], " INICIALIZANDO ");
+//     strcpy(text_line_oled[1], "               ");
+//     strcpy(text_line_oled[2], " Infraestrutra ");
+//     strcpy(text_line_oled[3], "    de Rede    ");
+//     strcpy(text_line_oled[4], "     Wi-FI     ");
+//     strcpy(text_line_oled[5], "               ");
+//     strcpy(text_line_oled[6], " SERRVIDOR WEB ");;
+//     strcpy(text_line_oled[7], "   CONECTADO   ");
 
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
-}
+//     uint8_t y = 0;
+//     for (uint i = 0; i < count_of(text_line_oled); i++)
+//     {
+//       ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
+//       y += ssd1306_line_height;
+//     }
+//     render_on_display(ssd, &frame_area);
+// }
 
 // Estado dos botões (inicialmente sem mensagens)
 char button_A_message[50] = "Nenhum evento no botão 1";
@@ -938,91 +938,91 @@ void create_http_response()
 /**
  * Função para processar (callback) as requisições HTTP
  */
-static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
-{
-  if (p == NULL)
-  {
-    // Cliente fechou a conexão
-    tcp_close(tpcb);
-    return ERR_OK;
-  }
+//static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+//{
+  // if (p == NULL)
+  // {
+  //   // Cliente fechou a conexão
+  //   tcp_close(tpcb);
+  //   return ERR_OK;
+  // }
 
-  // Processa a requisição HTTP
-  char *request = (char *)p->payload;
+  // // Processa a requisição HTTP
+  // char *request = (char *)p->payload;
 
-  // Verifica qual é a requisição
-  if (strstr(request, "GET /acustic_angle/"))
-  {
-    /**
-     * ajusta o angulo de captação do acoplador acustico
-     */
-  }else if (strstr(request, "POST /aceleration/xy"))
-  {
-    if (!modo_local)
-    {
-      // obtem na requisição a posição x e y desejada
-      // aceleration_x = x;
-      // aceleration_y = y;
-    }
+  // // Verifica qual é a requisição
+  // if (strstr(request, "GET /acustic_angle/"))
+  // {
+  //   /**
+  //    * ajusta o angulo de captação do acoplador acustico
+  //    */
+  // }else if (strstr(request, "POST /aceleration/xy"))
+  // {
+  //   if (!modo_local)
+  //   {
+  //     // obtem na requisição a posição x e y desejada
+  //     // aceleration_x = x;
+  //     // aceleration_y = y;
+  //   }
 
-    // Envia a resposta HTTP
-    create_http_response();
-    tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
+  //   // Envia a resposta HTTP
+  //   create_http_response();
+  //   tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
   
-  }else if (strstr(request, "POST /aceleration/x"))
-  {
-    // obtem na requisição o valor do eixo X
-    if (!modo_local)
-    {
-      // obtem na requisição a posição x desejada
-      // aceleration_x = x;
-    }
+  // }else if (strstr(request, "POST /aceleration/x"))
+  // {
+  //   // obtem na requisição o valor do eixo X
+  //   if (!modo_local)
+  //   {
+  //     // obtem na requisição a posição x desejada
+  //     // aceleration_x = x;
+  //   }
 
-    // Envia a resposta HTTP
-    create_http_response();
-    tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
-  }
-  else if (strstr(request, "POST /aceleration/y"))
-  {
-    // obtem na requisição o valor do eixo Y
-    if (!modo_local)
-    {
-      // obtem na requisição a posição y desejada
-      // aceleration_y = y;
-    }
+  //   // Envia a resposta HTTP
+  //   create_http_response();
+  //   tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
+  // }
+  // else if (strstr(request, "POST /aceleration/y"))
+  // {
+  //   // obtem na requisição o valor do eixo Y
+  //   if (!modo_local)
+  //   {
+  //     // obtem na requisição a posição y desejada
+  //     // aceleration_y = y;
+  //   }
     
-    // Envia a resposta HTTP
-    create_http_response();
-    tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
-  }
-  else if (strstr(request, "GET /update"))
-  {
-    // deve enviar a situação do drone
-    // Envia a resposta HTTP
-    create_json_update_response();
-    tcp_write(tpcb, json_response, strlen(json_response), TCP_WRITE_FLAG_COPY);
-  }
-  else if (strstr(request, "GET /noise"))
-  {
-    // Envia a resposta HTTP
-    // obtem o array de amostras de ruidos coletados
+  //   // Envia a resposta HTTP
+  //   create_http_response();
+  //   tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
+  // }
+  // else if (strstr(request, "GET /update"))
+  // {
+  //   // deve enviar a situação do drone
+  //   // Envia a resposta HTTP
+  //   create_json_update_response();
+  //   tcp_write(tpcb, json_response, strlen(json_response), TCP_WRITE_FLAG_COPY);
+  // }
+  // else if (strstr(request, "GET /noise"))
+  // {
+  //   // Envia a resposta HTTP
+  //   // obtem o array de amostras de ruidos coletados
 
-    create_json_noise_response();
-    tcp_write(tpcb, json_response, strlen(json_response), TCP_WRITE_FLAG_COPY);
-  }
+  //   create_json_noise_response();
+  //   tcp_write(tpcb, json_response, strlen(json_response), TCP_WRITE_FLAG_COPY);
+  // }
 
-  // Libera o buffer recebido
-  pbuf_free(p);
+  // // Libera o buffer recebido
+  // pbuf_free(p);
 
-  return ERR_OK;
-}
+  // return ERR_OK;
+//}
 
 // Callback de conexão: associa o http_callback à conexão
-static err_t connection_callback(void *arg, struct tcp_pcb *newpcb, err_t err)
-{
-  tcp_recv(newpcb, http_callback); // Associa o callback HTTP
-  return ERR_OK;
-}
+//static err_t connection_callback(void *arg, struct tcp_pcb *newpcb, err_t err)
+//{
+//  tcp_recv(newpcb, http_callback); // Associa o callback HTTP
+//  return ERR_OK;
+//}
 
 // Função para monitorar o estado dos botões
 static void monitor_buttons_callback(unsigned int gpio, long unsigned int events)
@@ -1039,8 +1039,8 @@ static void monitor_buttons_callback(unsigned int gpio, long unsigned int events
     if (button_A_state)
     {
       snprintf(button_A_message, sizeof(button_A_message), "Botão A foi pressionado!");
-      uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
-      sprintf(text_line_oled[7], "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
+//      uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
+//      sprintf(text_line_oled[7], "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
     }
     else
     {
