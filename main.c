@@ -65,6 +65,15 @@ int main()
 {
   stdio_init_all(); // Inicializa os tipos stdio padrão presentes ligados ao binário
 
+  // Aguarda a conexão da serial
+  while (!stdio_usb_connected())
+  {
+      // Aguardando conexão serial...;
+      sleep_ms(1000);
+  }
+  printf("Conexão serial estabelecida!\n");
+
+
   init_display_oled();
 
   show_intro();
