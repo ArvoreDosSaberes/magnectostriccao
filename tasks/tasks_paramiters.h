@@ -2,10 +2,15 @@
 #define __TASKS_PARAMITERS_H__
 
 #include "FreeRTOS.h"
+#include "task.h"
 
 #define TASK_DISPLAY_OLED_STACK_SIZE   (configMINIMAL_STACK_SIZE * 6)
 #define TASK_DISPLAY_OLED_PRIORITY     (tskIDLE_PRIORITY + 1)
 #define TASK_DISPLAY_OLED_DELAY        (500/portTICK_PERIOD_MS)
+
+#define TASK_VU_LEDS_STACK_SIZE        (configMINIMAL_STACK_SIZE * 2)
+#define TASK_VU_LEDS_PRIORITY          (tskIDLE_PRIORITY + 1)
+#define TASK_VU_LEDS_DELAY             (200 / portTICK_PERIOD_MS)
 
 #define TASK_DRONE_CONTROL_STACK_SIZE  (configMINIMAL_STACK_SIZE * 3)
 #define TASK_DRONE_CONTROL_PRIORITY    (tskIDLE_PRIORITY +1)
@@ -19,8 +24,25 @@
 #define TASK_TINYML_PRIORITY           (tskIDLE_PRIORITY + 1)
 #define TASK_TINYML_DELAY              (1000 / portTICK_PERIOD_MS)
 
+#define TASK_FFT_FILTER_STACK_SIZE     (configMINIMAL_STACK_SIZE)
+#define TASK_FFT_FILTER_PRIORITY       (tskIDLE_PRIORITY + 4)
+#define TASK_FFT_FILTER_DELAY          (100 / portTICK_PERIOD_MS)
+
 #define TASK_ADC_DMA_STACK_SIZE        (configMINIMAL_STACK_SIZE * 2)
 #define TASK_ADC_DMA_PRIORITY          (tskIDLE_PRIORITY + 1)
 #define TASK_ADC_DMA_DELAY             (100 / portTICK_PERIOD_MS)
+#define ADC_TO_FFT_QUEUE_TIMEOUT 0 // Tempo de espera para a fila do ADC.
+#define ADC_INTENSITY_QUEUE_TIMEOUT 0 // Tempo de espera para a fila da intensidade.
+
+#define ADC_SAMPLES 256 // Número de amostras que serão feitas do ADC. deve ser potência de 2
+#define ADC_QUEUE_LENGTH 30 // Número de amostras que serão armazenadas na fila do ADC.
+
+#define OLED_INIT_QUEUE_TIMEOUT 10 // Tempo de espera para a fila da inicialização do OLED.
+#define ADC_INTENSITY_QUEUE_TIMEOUT 0 // Tempo de espera para a fila da intensidade.
+#define ADC_INTENSITY_QUEUE_LENGTH 1// 1 PARA PROCESAR O QUE FOR VIÁVEL // Número de amostras que são armazenadas na fila da intensidade.
+
+#define FFT_TO_TINYML_QUEUE_TIMEOUT 5 // Tempo de espera para a fila da FFT.
+#define TINYML_QUEUE_LENGTH 100 // Número de amostras que são armazenadas na fila da FFT.
+
 
 #endif

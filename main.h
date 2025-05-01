@@ -87,10 +87,11 @@ static void show_intro();
 static bool start_gpio_and_drone_control();
 static bool start_network_infrastructure();
 static void start_bottons_control();
-static void start_VU_LED();
+static bool start_VU_LED();
 static bool start_display_oled();
 static bool start_ADC_with_DMA();
 static bool start_tinyML();
+static bool start_fft_filter();
 
 
 #endif
