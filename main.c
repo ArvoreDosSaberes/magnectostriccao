@@ -212,10 +212,10 @@ int main()
   strcpy(text[0], " Inicializando ");
   strcpy(text[1], "               ");
   strcpy(text[2], "               ");
-  strcpy(text[3], " Infraestrutra ");
-  strcpy(text[4], "    de Rede    ");
+  strcpy(text[3], "      GPIO     ");
+  strcpy(text[4], "               ");
   strcpy(text[5], "               ");
-  strcpy(text[6], "     Wi-FI     ");
+  strcpy(text[6], "               ");
   strcpy(text[7], "               ");
 
   y = 0;
@@ -225,6 +225,9 @@ int main()
     y += ssd1306_line_height;
   }
   render_on_display(ssd, &frame_area);
+
+  
+  sleep_ms(400);
 
   if (cyw43_arch_init_with_country(CYW43_COUNTRY_BRAZIL))
   {
@@ -291,53 +294,6 @@ int main()
     // Inicia o servidor HTTP
     start_http_server();
   }
-
-  sleep_ms(1000);
-
-  strcpy(text[0], "   Ativando    ");
-  strcpy(text[1], "               ");
-  strcpy(text[2], "      ADC      ");
-  strcpy(text[3], "    Por DMA    ");
-  strcpy(text[4], "               ");
-  strcpy(text[5], "               ");
-  strcpy(text[6], "               ");
-  strcpy(text[7], "               ");
-
-  // ssd1306_write_array(ssd, &frame_area, &text);
-  y = 0;
-  for (uint i = 0; i < count_of(text); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
-
-  adc_gpio_init(MIC_PIN);
-  adc_init();
-  adc_select_input(MIC_CHANNEL);
-
-  adc_fifo_setup(
-      true,  // Habilitar FIFO
-      true,  // Habilitar request de dados do DMA
-      1,     // Threshold para ativar request DMA é 1 leitura do ADC
-      false, // Não usar bit de erro
-      false  // Não fazer downscale das amostras para 8-bits, manter 12-bits.
-  );
-
-  adc_set_clkdiv(ADC_CLOCK_DIV);
-  // Tomando posse de canal do DMA.
-  dma_channel = dma_claim_unused_channel(true);
-
-  // Configurações do DMA.
-  dma_cfg = dma_channel_get_default_config(dma_channel);
-
-  channel_config_set_transfer_data_size(&dma_cfg, DMA_SIZE_16); // Tamanho da transferência é 16-bits (usamos uint16_t para armazenar valores do ADC)
-  channel_config_set_read_increment(&dma_cfg, false);           // Desabilita incremento do ponteiro de leitura (lemos de um único registrador)
-  channel_config_set_write_increment(&dma_cfg, true);           // Habilita incremento do ponteiro de escrita (escrevemos em um array/buffer)
-
-  channel_config_set_dreq(&dma_cfg, DREQ_ADC); // Usamos a requisição de dados do ADC
-
-  sample_mic();
 
   sleep_ms(1000);
 
@@ -410,10 +366,86 @@ int main()
   }
   render_on_display(ssd, &frame_area);
 
-  npInit(LED_PIN, LED_COUNT);
+  npInit(MATRIZ_LED_PIN, MATRIZ_LED_COUNT);
+
+  sleep_ms(1000);
+
+  strcpy(text[0], "   Ativando    ");
+  strcpy(text[1], "               ");
+  strcpy(text[2], "      ADC      ");
+  strcpy(text[3], "    Por DMA    ");
+  strcpy(text[4], "               ");
+  strcpy(text[5], "               ");
+  strcpy(text[6], "               ");
+  strcpy(text[7], "               ");
+
+  // ssd1306_write_array(ssd, &frame_area, &text);
+  y = 0;
+  for (uint i = 0; i < count_of(text); i++)
+  {
+    ssd1306_draw_string(ssd, 5, y, text[i]);
+    y += ssd1306_line_height;
+  }
+  render_on_display(ssd, &frame_area);
+
+  // O código abaixo deve ser transportado para a TASK (FreeRTOS) que
+  // faz o processamento da amostragem via DMA
+  adc_gpio_init(MIC_PIN);
+  adc_init();
+  adc_select_input(MIC_CHANNEL);
+
+  adc_fifo_setup(
+      true,  // Habilitar FIFO
+      true,  // Habilitar request de dados do DMA
+      1,     // Threshold para ativar request DMA é 1 leitura do ADC
+      false, // Não usar bit de erro
+      false  // Não fazer downscale das amostras para 8-bits, manter 12-bits.
+  );
+
+  adc_set_clkdiv(ADC_CLOCK_DIV);
+  // Tomando posse de canal do DMA.
+  dma_channel = dma_claim_unused_channel(true);
+
+  // Configurações do DMA.
+  dma_cfg = dma_channel_get_default_config(dma_channel);
+
+  channel_config_set_transfer_data_size(&dma_cfg, DMA_SIZE_16); // Tamanho da transferência é 16-bits (usamos uint16_t para armazenar valores do ADC)
+  channel_config_set_read_increment(&dma_cfg, false);           // Desabilita incremento do ponteiro de leitura (lemos de um único registrador)
+  channel_config_set_write_increment(&dma_cfg, true);           // Habilita incremento do ponteiro de escrita (escrevemos em um array/buffer)
+
+  channel_config_set_dreq(&dma_cfg, DREQ_ADC); // Usamos a requisição de dados do ADC
+
+  sample_mic();
 
   sleep_ms(500);
 
+  strcpy(text[0], "   Ativando    ");
+  strcpy(text[1], "               ");
+  strcpy(text[2], "               ");
+  strcpy(text[3], "   Controle    ");
+  strcpy(text[4], "               ");
+  strcpy(text[5], "   Do DRONE    ");
+  strcpy(text[6], "  TERRESTRE    ");
+  strcpy(text[7], "               ");
+
+  // ssd1306_write_array(ssd, &frame_area, &text);
+  y = 0;
+  for (uint i = 0; i < count_of(text); i++)
+  {
+    ssd1306_draw_string(ssd, 5, y, text[i]);
+    y += ssd1306_line_height;
+  }
+  render_on_display(ssd, &frame_area);
+
+  // Aqui deve ser inicializada a task de controle do drone
+  // #########################################
+  // #########################################
+  // #########################################
+  // #########################################
+  // #########################################
+
+  sleep_ms(1000);
+  
   strcpy(text[0], "   Ativando    ");
   strcpy(text[1], "               ");
   strcpy(text[2], "               ");
@@ -432,7 +464,7 @@ int main()
   }
   render_on_display(ssd, &frame_area);
 
-  // Inicializa o TinyML.
+  // Aqui deve ser inicializado a TASKTinyML.
   // #########################################
   // #########################################
   // #########################################
@@ -448,14 +480,20 @@ int main()
   strcpy(text[6], "               ");
   strcpy(text[7], "               ");
 
+  // aqui deve ser iniciado o escalonador do freertos, o código asseguir será levado para as espectivas tasks
+  
+  // o código abaixo deve reestruturado para sepearar a infra de rede do processador do VU
+  // 
   int32_t last_time = time_us_32();
   while (true)
   {
+    // infra de rede
     cyw43_arch_poll(); // Necessário para manter o Wi-Fi ativo
 
-    // Realiza uma amostragem do microfone.
+    // Realiza uma amostragem do microfone. deve ser transportado para a TASK de amostragem ADC
     sample_mic();
 
+    // realiza a exibição do status da coleta de ruidos
     // Pega a potência média da amostragem do microfone.
     float avg = mic_power();
     avg = 2.f * abs(ADC_ADJUST(avg)); // Ajusta para intervalo de 0 a 3.3V. (apenas magnitude, sem sinal)
@@ -620,26 +658,56 @@ static void start_http_server(void)
   struct tcp_pcb *pcb = tcp_new();
   if (!pcb)
   {
-    printf("Erro ao criar PCB\n");
+    strcpy(text[0], " INICIALIZANDO ");
+    strcpy(text[1], "               ");
+    strcpy(text[2], " Infraestrutra ");
+    strcpy(text[3], "    de Rede    ");
+    strcpy(text[4], "     Wi-FI     ");
+    strcpy(text[5], "               ");
+    strcpy(text[6], " Erro criando  ");
+    strcpy(text[7], "      PCB      ");
+
+    uint8_t y = 0;
+    for (uint i = 0; i < count_of(text); i++)
+    {
+      ssd1306_draw_string(ssd, 5, y, text[i]);
+      y += ssd1306_line_height;
+    }
+    render_on_display(ssd, &frame_area);
+
     return;
   }
 
   // Liga o servidor na porta 80
   if (tcp_bind(pcb, IP_ADDR_ANY, 80) != ERR_OK)
   {
-    printf("Erro ao ligar o servidor na porta 80\n");
+    strcpy(text[0], " INICIALIZANDO ");
+    strcpy(text[1], "               ");
+    strcpy(text[2], " Infraestrutra ");
+    strcpy(text[3], "    de Rede    ");
+    strcpy(text[4], "     Wi-FI     ");
+    strcpy(text[5], "               ");
+    strcpy(text[6], " Erro conectar ");
+    strcpy(text[7], "    porta 80   ");
+
+    uint8_t y = 0;
+    for (uint i = 0; i < count_of(text); i++)
+    {
+      ssd1306_draw_string(ssd, 5, y, text[i]);
+      y += ssd1306_line_height;
+    }
+    render_on_display(ssd, &frame_area);
     return;
   }
 
   pcb = tcp_listen(pcb);                // Coloca o PCB em modo de escuta
   tcp_accept(pcb, connection_callback); // Associa o callback de conexão
 
-  printf("Servidor HTTP rodando na porta 80...\n");
 }
 
 // Estado dos botões (inicialmente sem mensagens)
-char button1_message[50] = "Nenhum evento no botão 1";
-char button2_message[50] = "Nenhum evento no botão 2";
+char button_A_message[50] = "Nenhum evento no botão 1";
+char button_B_message[50] = "Nenhum evento no botão 2";
 
 // Buffer para resposta HTTP
 char http_response[1024];
@@ -684,25 +752,8 @@ void create_json_noise_response(){
 // Função para criar a resposta HTTP
 void create_http_response()
 {
-  snprintf(http_response, sizeof(http_response),
-           "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
-           "<!DOCTYPE html>"
-           "<html>"
-           "<head>"
-           "  <meta charset=\"UTF-8\">"
-           "  <title>Controle do LED e Botões</title>"
-           "</head>"
-           "<body>"
-           "  <h1>Controle do LED e Botões</h1>"
-           "  <p><a href=\"/led/on\">Ligar LED</a></p>"
-           "  <p><a href=\"/led/off\">Desligar LED</a></p>"
-           "  <p><a href=\"/update\">Atualizar Estado</a></p>"
-           "  <h2>Estado dos Botões:</h2>"
-           "  <p>Botão 1: %s</p>"
-           "  <p>Botão 2: %s</p>"
-           "</body>"
-           "</html>\r\n",
-           button1_message, button2_message);
+  snprintf(http_response, sizeof(http_response), HTTP_RESPONSE,
+           button_A_message, button_B_message);
 }
 
 // Função de callback para processar requisições HTTP
@@ -721,6 +772,7 @@ static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_
   // Verifica qual é a requisição
   if (strstr(request, "GET /acustic_angle/"))
   {
+<<<<<<< HEAD
     /**
      * ajusta o angulo de captação do acoplador acustico
      */
@@ -779,6 +831,28 @@ static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_
     tcp_write(tpcb, json_response, strlen(json_response), TCP_WRITE_FLAG_COPY);
   }
 
+=======
+    gpio_put(LED_PIN_BLUE, 1); // Liga o LED
+    // Envia a resposta HTTP
+    create_http_response();
+    tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
+  }
+  else if (strstr(request, "GET /led/off"))
+  {
+    gpio_put(LED_PIN_BLUE, 0); // Desliga o LED
+    // Envia a resposta HTTP
+    create_http_response();
+    tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
+  }
+  else if (strstr(request, "GET /update"))
+  {
+    // Envia a resposta HTTP
+    create_http_response();
+    tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
+  }
+
+https://github.com/BitDogLab/BitDogLab-C/blob/main/wifi_button_and_led/pico_w_wifi_complete_example.c
+>>>>>>> 77f627f (ajustes nas mensagens de)
   // Libera o buffer recebido
   pbuf_free(p);
 
@@ -795,45 +869,49 @@ static err_t connection_callback(void *arg, struct tcp_pcb *newpcb, err_t err)
 // Função para monitorar o estado dos botões
 static void monitor_buttons_callback(unsigned int gpio, long unsigned int events)
 {
-  static bool button1_last_state = false;
-  static bool button2_last_state = false;
+  static bool button_A_last_state = false;
+  static bool button_B_last_state = false;
 
   bool button_A_state = !gpio_get(BUTTON_A_PIN); // Botão pressionado = LOW
   bool button_B_state = !gpio_get(BUTTON_B_PIN);
 
-  if (button_A_state != button1_last_state)
+  if (button_A_state != button_A_last_state)
   {
-    button1_last_state = button_A_state;
+    button_A_last_state = button_A_state;
     if (button_A_state)
     {
-      snprintf(button1_message, sizeof(button1_message), "Botão 1 foi pressionado!");
+      snprintf(button_A_message, sizeof(button_A_message), "Botão A foi pressionado!");
       uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
       sprintf(text[7], "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
     }
     else
     {
-      snprintf(button1_message, sizeof(button1_message), "Botão 1 foi solto!");
+      snprintf(button_A_message, sizeof(button_A_message), "Botão A foi solto!");
       strcpy(text[7], "               ");
     }
     uint y = 0;
   }
 
-  if (button_B_state != button2_last_state)
+  if (button_B_state != button_B_last_state)
   {
-    button2_last_state = button_B_state;
+    button_B_last_state = button_B_state;
     if (button_B_state)
     {
-      snprintf(button2_message, sizeof(button2_message), "Botão 2 foi pressionado!");
+      snprintf(button_B_message, sizeof(button_B_message), "Botão B foi pressionado!");
       modo_local = !modo_local;
       if (modo_local)
         strcpy(text[7], "  modo local  ");
       else
+<<<<<<< HEAD
        strcpy(text[7],  " modo remoto  ");
       
+=======
+        strcpy(text[7], "   modo remoto ");
+>>>>>>> 77f627f (ajustes nas mensagens de)
     }
     else
     {
-      snprintf(button2_message, sizeof(button2_message), "Botão 2 foi solto!");
+      snprintf(button_B_message, sizeof(button_B_message), "Botão B foi solto!");
     }
   }
 }
