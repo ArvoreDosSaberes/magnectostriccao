@@ -37,7 +37,8 @@
 #include "tasks/task_tinyML.h" // Carrega tarefas do TinyML
 #include "tasks/task_fft_filter.h" // Carrega tarefas do filtro FFT
 #include "tasks/task_http_server.h" // Carrega tarefas do http server
-#include "tasks/task_vu_leds.h" // Carrega tarefas do VU LEDS
+#include "tasks/task_fft_filter.h" // Carrega tarefas do filtro FFT
+#include "tasks/task_vu_leds.h" // Carrega tarefas do leds de volume
 #include "main.h" // carrega cabeçalhos do main
 
 // buffer de texto para o display oled
@@ -94,13 +95,13 @@ int main()
   if(!start_network_infrastructure()) return 1;
 
   sleep_ms(INTER_SCREEN_DELAY);
-
+ 
   if(!start_gpio_and_drone_control()) return 1;
 
   sleep_ms(INTER_SCREEN_DELAY);
 
   if(!start_display_oled()) return 1;
-
+  
   sleep_ms(INTER_SCREEN_DELAY);
 
   strcpy(text_line_oled[0], "               ");
@@ -128,7 +129,7 @@ int main()
 bool start_display_oled(){
   BaseType_t xReturn = xTaskCreate(
     task_display_oled,
-    "Task OLED",
+    "Task que mantem o display OLED atualizado",
     TASK_DISPLAY_OLED_STACK_SIZE,
     NULL,
     TASK_DISPLAY_OLED_PRIORITY,
@@ -449,6 +450,7 @@ bool start_fft_filter(){
  
 }
 
+
 /**
  * @brief Exibe mensagens de inicializacao e inicializa o ADC com DMA.
  *
@@ -667,7 +669,7 @@ bool start_gpio_and_drone_control(){
   /////////////////////////////////////////////////////////
   // inicializa e verifica atuadores e sensores do drone //
   /////////////////////////////////////////////////////////
-  
+ 
   // ativa adc do joistick
   adc_gpio_init(26); 
   adc_gpio_init(27);
@@ -920,7 +922,7 @@ void create_json_noise_response(){
            "    \"order\": 1, \"data\":[43, 43, 43, 43, 43, 43, 43, 43, 43, 43]},\r\n"
            "    \"order\": 2, \"data\":[43, 43, 43, 43, 43, 43, 43, 43, 43, 43]},\r\n"
            "    \"order\": 3, \"data\":[43, 43, 43, 43, 43, 43, 43, 43, 43, 43]},\r\n"
-           "}\r\n"
+           "  }\r\n"
            "}\r\n"
            "\r\n");
   
@@ -983,14 +985,14 @@ static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_
     tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
   }
   else if (strstr(request, "POST /aceleration/y"))
-  {
-    // obtem na requisição o valor do eixo Y
-    if (!modo_local)
     {
-      // obtem na requisição a posição y desejada
-      // aceleration_y = y;
-    }
-    
+      // obtem na requisição o valor do eixo Y
+      if (!modo_local)
+      {
+        // obtem na requisição a posição y desejada
+        // aceleration_y = y;
+      }
+      
     // Envia a resposta HTTP
     create_http_response();
     tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);

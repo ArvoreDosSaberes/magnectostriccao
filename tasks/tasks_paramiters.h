@@ -35,6 +35,9 @@
 #define ADC_TO_FFT_QUEUE_TIMEOUT 0 // Tempo de espera para a fila do ADC.
 #define ADC_INTENSITY_QUEUE_TIMEOUT 0 // Tempo de espera para a fila da intensidade.
 
+#define ADC_TO_FFT_QUEUE_TIMEOUT 0 // Tempo de espera para a fila do ADC.
+#define ADC_INTENSITY_QUEUE_TIMEOUT 0 // Tempo de espera para a fila da intensidade.
+
 #define ADC_SAMPLES 256 // Número de amostras que serão feitas do ADC. deve ser potência de 2
 #define ADC_QUEUE_LENGTH 30 // Número de amostras que serão armazenadas na fila do ADC.
 
@@ -44,6 +47,5 @@
 
 #define FFT_TO_TINYML_QUEUE_TIMEOUT 5 // Tempo de espera para a fila da FFT.
 #define TINYML_QUEUE_LENGTH 100 // Número de amostras que são armazenadas na fila da FFT.
-
 
 #endif

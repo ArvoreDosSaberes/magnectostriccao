@@ -94,6 +94,7 @@ static void init_display_oled();
 
 static bool start_ADC_with_DMA();
 static bool start_tinyML();
+static bool start_fft_filter();
 
 static bool start_fft_filter();
 
