@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel <DEVELOPMENT BRANCH>
+ * FreeRTOS Kernel V11.1.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -601,7 +601,7 @@
         traceENTER_xTimerGetReloadMode( xTimer );
 
         configASSERT( xTimer );
-        portBASE_TYPE_ENTER_CRITICAL();
+        taskENTER_CRITICAL();
         {
             if( ( pxTimer->ucStatus & tmrSTATUS_IS_AUTORELOAD ) == 0U )
             {
@@ -614,7 +614,7 @@
                 xReturn = pdTRUE;
             }
         }
-        portBASE_TYPE_EXIT_CRITICAL();
+        taskEXIT_CRITICAL();
 
         traceRETURN_xTimerGetReloadMode( xReturn );
 
@@ -1169,7 +1169,7 @@
         configASSERT( xTimer );
 
         /* Is the timer in the list of active timers? */
-        portBASE_TYPE_ENTER_CRITICAL();
+        taskENTER_CRITICAL();
         {
             if( ( pxTimer->ucStatus & tmrSTATUS_IS_ACTIVE ) == 0U )
             {
@@ -1180,7 +1180,7 @@
                 xReturn = pdTRUE;
             }
         }
-        portBASE_TYPE_EXIT_CRITICAL();
+        taskEXIT_CRITICAL();
 
         traceRETURN_xTimerIsTimerActive( xReturn );
 

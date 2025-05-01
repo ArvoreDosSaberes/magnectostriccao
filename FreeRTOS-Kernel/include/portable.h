@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel <DEVELOPMENT BRANCH>
+ * FreeRTOS Kernel V11.1.0
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -85,18 +85,6 @@
     #define portARCH_NAME    NULL
 #endif
 
-#ifndef portBASE_TYPE_ENTER_CRITICAL
-    #define portBASE_TYPE_ENTER_CRITICAL()    taskENTER_CRITICAL()
-#endif
-
-#ifndef portBASE_TYPE_EXIT_CRITICAL
-    #define portBASE_TYPE_EXIT_CRITICAL()    taskEXIT_CRITICAL()
-#endif
-
-#ifndef portGET_CURRENT_TOP_OF_STACK
-    #define portGET_CURRENT_TOP_OF_STACK( pxCurrentTopOfStack )    { pxCurrentTopOfStack = ( StackType_t * ) pxCurrentTCB->pxTopOfStack; }
-#endif
-
 #ifndef configSTACK_DEPTH_TYPE
     #define configSTACK_DEPTH_TYPE    StackType_t
 #endif
@@ -106,13 +94,13 @@
     #define configSTACK_ALLOCATION_FROM_SEPARATE_HEAP    0
 #endif
 
-#include "mpu_wrappers.h"
-
 /* *INDENT-OFF* */
 #ifdef __cplusplus
     extern "C" {
 #endif
 /* *INDENT-ON* */
+
+#include "mpu_wrappers.h"
 
 /*
  * Setup the stack of a new task so it is ready to be placed under the
@@ -197,7 +185,6 @@ void vPortFree( void * pv ) PRIVILEGED_FUNCTION;
 void vPortInitialiseBlocks( void ) PRIVILEGED_FUNCTION;
 size_t xPortGetFreeHeapSize( void ) PRIVILEGED_FUNCTION;
 size_t xPortGetMinimumEverFreeHeapSize( void ) PRIVILEGED_FUNCTION;
-void xPortResetHeapMinimumEverFreeHeapSize( void ) PRIVILEGED_FUNCTION;
 
 #if ( configSTACK_ALLOCATION_FROM_SEPARATE_HEAP == 1 )
     void * pvPortMallocStack( size_t xSize ) PRIVILEGED_FUNCTION;

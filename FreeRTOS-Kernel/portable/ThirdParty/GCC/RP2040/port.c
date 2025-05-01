@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel <DEVELOPMENT BRANCH>
+ * FreeRTOS Kernel V11.1.0
  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  * Copyright (c) 2021 Raspberry Pi (Trading) Ltd.
  *
@@ -46,6 +46,9 @@
 #if ( LIB_PICO_MULTICORE == 1 )
     #include "pico/multicore.h"
 #endif /* LIB_PICO_MULTICORE */
+
+/* TODO : consider to remove this macro. */
+#define portRUNNING_ON_BOTH_CORES             ( configNUMBER_OF_CORES == portMAX_CORE_COUNT )
 
 /* Constants required to manipulate the NVIC. */
 #define portNVIC_SYSTICK_CTRL_REG             ( *( ( volatile uint32_t * ) 0xe000e010 ) )
@@ -121,21 +124,22 @@ UBaseType_t uxCriticalNestings[ configNUMBER_OF_CORES ] = { 0 };
 
 /*-----------------------------------------------------------*/
 
-#if ( configSUPPORT_PICO_SYNC_INTEROP == 1 || configNUMBER_OF_CORES > 1 )
-    #include "hardware/irq.h"
-#endif /* ( configSUPPORT_PICO_SYNC_INTEROP == 1 || configNUMBER_OF_CORES > 1 ) */
 #if ( configSUPPORT_PICO_SYNC_INTEROP == 1 )
     #include "pico/lock_core.h"
+    #include "hardware/irq.h"
     #include "event_groups.h"
     #if configSUPPORT_STATIC_ALLOCATION
         static StaticEventGroup_t xStaticEventGroup;
         #define pEventGroup    ( &xStaticEventGroup )
     #endif /* configSUPPORT_STATIC_ALLOCATION */
     static EventGroupHandle_t xEventGroup;
-    #if ( configNUMBER_OF_CORES == 1 )
+    #if ( portRUNNING_ON_BOTH_CORES == 0 )
         static EventBits_t uxCrossCoreEventBits;
-        static spin_lock_t * pxCrossCoreSpinLock; /* protects uxCrossCoreEventBits */
+        static spin_lock_t * pxCrossCoreSpinLock;
     #endif
+
+    static spin_lock_t * pxYieldSpinLock[ configNUMBER_OF_CORES ];
+    static uint32_t ulYieldSpinLockSaveValue[ configNUMBER_OF_CORES ];
 #endif /* configSUPPORT_PICO_SYNC_INTEROP */
 
 /*
@@ -168,7 +172,7 @@ UBaseType_t uxCriticalNestings[ configNUMBER_OF_CORES ] = { 0 };
 static uint8_t ucPrimaryCoreNum = INVALID_PRIMARY_CORE_NUM;
 
 /* Note: portIS_FREE_RTOS_CORE() also returns false until the scheduler is started */
-#if ( configNUMBER_OF_CORES != 1 )
+#if ( portRUNNING_ON_BOTH_CORES == 1 )
     #define portIS_FREE_RTOS_CORE()    ( ucPrimaryCoreNum != INVALID_PRIMARY_CORE_NUM )
 #else
     #define portIS_FREE_RTOS_CORE()    ( ucPrimaryCoreNum == get_core_num() )
@@ -244,16 +248,16 @@ void vPortStartFirstTask( void )
                 "   ldr r0, [r0]                    \n"
                 "   msr msp, r0                     \n" /* Set the msp back to the start of the stack. */
             #endif /* configRESET_STACK_POINTER */
-            #if ( configNUMBER_OF_CORES != 1 )
+            #if portRUNNING_ON_BOTH_CORES
                 "   adr r1, ulAsmLocals             \n" /* Get the location of the current TCB for the current core. */
                 "   ldmia r1!, {r2, r3}             \n"
                 "   ldr r2, [r2]                    \n" /* r2 = Core number */
                 "   lsls r2, #2                     \n"
                 "   ldr r3, [r3, r2]                \n" /* r3 = pxCurrentTCBs[get_core_num()] */
-            #else /* configNUMBER_OF_CORES != 1 */
+            #else
                 "   ldr r3, =pxCurrentTCBs          \n"
                 "   ldr r3, [r3]                    \n"  /* r3 = pxCurrentTCBs[0] */
-            #endif /* configNUMBER_OF_CORES != 1 */
+            #endif /* portRUNNING_ON_BOTH_CORES */
             "    ldr  r0, [r3]                       \n" /* The first item in pxCurrentTCB is the task top of stack. */
             "    adds r0, #32                        \n" /* Discard everything up to r0. */
             "    msr  psp, r0                        \n" /* This is now the new top of stack to use in the task. */
@@ -266,7 +270,7 @@ void vPortStartFirstTask( void )
             "    pop  {r2}                           \n" /* Pop and discard XPSR. */
             "    cpsie i                             \n" /* The first task has its context and interrupts can be enabled. */
             "    bx   r3                             \n" /* Finally, jump to the user defined task code. */
-            #if configNUMBER_OF_CORES != 1
+            #if portRUNNING_ON_BOTH_CORES
                 "                                   \n"
                 "     .align 4                      \n"
                 "ulAsmLocals:                       \n"
@@ -288,7 +292,7 @@ void vPortStartFirstTask( void )
         /* And explicitly clear any other IRQ flags. */
         multicore_fifo_clear_irq();
 
-        #if ( configNUMBER_OF_CORES != 1 )
+        #if ( portRUNNING_ON_BOTH_CORES == 1 )
             portYIELD_FROM_ISR( pdTRUE );
         #elif ( configSUPPORT_PICO_SYNC_INTEROP == 1 )
             BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -298,7 +302,7 @@ void vPortStartFirstTask( void )
             spin_unlock( pxCrossCoreSpinLock, ulSave );
             xEventGroupSetBitsFromISR( xEventGroup, ulBits, &xHigherPriorityTaskWoken );
             portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
-        #endif /* configNUMBER_OF_CORES != 1 */
+        #endif /* portRUNNING_ON_BOTH_CORES */
     }
 #endif /* if ( LIB_PICO_MULTICORE == 1 ) && ( configSUPPORT_PICO_SYNC_INTEROP == 1 ) */
 
@@ -343,21 +347,23 @@ void vPortStartFirstTask( void )
         /* Should never get here as the tasks will now be executing!  Call the task
          * exit error function to prevent compiler warnings about a static function
          * not being called in the case that the application writer overrides this
-         * functionality by defining configTASK_RETURN_ADDRESS. Call
-         * vTaskSwitchContext() so link time optimization does not remove the
+         * functionality by defining configTASK_RETURN_ADDRESS.  Call
+         * vTaskSwitchContext() so link time optimisation does not remove the
          * symbol. */
         vTaskSwitchContext( portGET_CORE_ID() );
         prvTaskExitError();
 
-        /* Should not get here. */
+        /* Should not get here! */
         return 0;
     }
 
-    static void prvDisableInterruptsAndPortStartSchedulerOnCore( void )
-    {
-        portDISABLE_INTERRUPTS();
-        xPortStartSchedulerOnCore();
-    }
+    #if portRUNNING_ON_BOTH_CORES
+        static void prvDisableInterruptsAndPortStartSchedulerOnCore( void )
+        {
+            portDISABLE_INTERRUPTS();
+            xPortStartSchedulerOnCore();
+        }
+    #endif
 
 /*
  * See header file for description.
@@ -370,10 +376,9 @@ void vPortStartFirstTask( void )
         spin_lock_claim( configSMP_SPINLOCK_0 );
         spin_lock_claim( configSMP_SPINLOCK_1 );
 
-        #if configNUMBER_OF_CORES != 1
+        #if portRUNNING_ON_BOTH_CORES
             ucPrimaryCoreNum = configTICK_CORE;
             configASSERT( get_core_num() == 0 ); /* we must be started on core 0 */
-            multicore_reset_core1();
             multicore_launch_core1( prvDisableInterruptsAndPortStartSchedulerOnCore );
         #else
             ucPrimaryCoreNum = get_core_num();
@@ -413,7 +418,7 @@ void vPortStartFirstTask( void )
             #if ( configSUPPORT_PICO_SYNC_INTEROP == 1 )
                 multicore_fifo_clear_irq();
                 multicore_fifo_drain();
-                uint32_t irq_num = SIO_IRQ_PROC0 + get_core_num();
+                uint32_t irq_num = 15 + get_core_num();
                 irq_set_priority( irq_num, portMIN_INTERRUPT_PRIORITY );
                 irq_set_exclusive_handler( irq_num, prvFIFOInterruptHandler );
                 irq_set_enabled( irq_num, 1 );
@@ -426,8 +431,8 @@ void vPortStartFirstTask( void )
         /* Should never get here as the tasks will now be executing!  Call the task
          * exit error function to prevent compiler warnings about a static function
          * not being called in the case that the application writer overrides this
-         * functionality by defining configTASK_RETURN_ADDRESS. Call
-         * vTaskSwitchContext() so link time optimization does not remove the
+         * functionality by defining configTASK_RETURN_ADDRESS.  Call
+         * vTaskSwitchContext() so link time optimisation does not remove the
          * symbol. */
         vTaskSwitchContext();
         prvTaskExitError();
@@ -441,14 +446,20 @@ void vPortStartFirstTask( void )
 
 void vPortEndScheduler( void )
 {
-    /* Not implemented in ports where there is nothing to return to.
-     * Artificially force an assert. */
-    configASSERT( portGET_CORE_ID() == 1000UL );
+    /* Not implemented in ports where there is nothing to return to. */
+    panic_unsupported();
 }
 /*-----------------------------------------------------------*/
 
 void vPortYield( void )
 {
+    #if ( configSUPPORT_PICO_SYNC_INTEROP == 1 )
+
+        /* We are not in an ISR, and pxYieldSpinLock is always dealt with and
+         * cleared when interrupts are re-enabled, so should be NULL */
+        configASSERT( pxYieldSpinLock[ portGET_CORE_ID() ] == NULL );
+    #endif /* configSUPPORT_PICO_SYNC_INTEROP */
+
     /* Set a PendSV to request a context switch. */
     portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;
 
@@ -484,6 +495,21 @@ void vPortYield( void )
     }
 #endif /* #if ( configNUMBER_OF_CORES == 1 ) */
 
+void vPortEnableInterrupts( void )
+{
+    #if ( configSUPPORT_PICO_SYNC_INTEROP == 1 )
+        int xCoreID = ( int ) portGET_CORE_ID();
+
+        if( pxYieldSpinLock[ xCoreID ] )
+        {
+            spin_lock_t * const pxTmpLock = pxYieldSpinLock[ xCoreID ];
+            pxYieldSpinLock[ xCoreID ] = NULL;
+            spin_unlock( pxTmpLock, ulYieldSpinLockSaveValue[ xCoreID ] );
+        }
+    #endif
+    __asm volatile ( " cpsie i " ::: "memory" );
+}
+
 /*-----------------------------------------------------------*/
 
 uint32_t ulSetInterruptMaskFromISR( void )
@@ -516,7 +542,7 @@ void vYieldCore( int xCoreID )
 
     configASSERT( xCoreID != ( int ) portGET_CORE_ID() );
 
-    #if configNUMBER_OF_CORES != 1
+    #if portRUNNING_ON_BOTH_CORES
 
         /* Non blocking, will cause interrupt on other core if the queue isn't already full,
          * in which case an IRQ must be pending */
@@ -619,7 +645,7 @@ void xPortPendSVHandler( void )
             "                                       \n"
             "   adr    r0, ulAsmLocals2             \n" /* Get the location of the current TCB for the current core. */
             "   ldmia r0!, {r2, r3}                 \n"
-            #if configNUMBER_OF_CORES != 1
+            #if portRUNNING_ON_BOTH_CORES
                 "   ldr r0, [r2]                    \n" /* r0 = Core number */
                 "   lsls r0, r0, #2                 \n"
                 "   adds r3, r0                     \n" /* r3 = &pxCurrentTCBs[get_core_num()] */
@@ -659,11 +685,11 @@ void xPortPendSVHandler( void )
                 "   subs r1, r1, #48                \n"
                 "   stmia r1!, {r4-r7}              \n"
             #endif /* portUSE_DIVIDER_SAVE_RESTORE */
-            #if configNUMBER_OF_CORES != 1
+            #if portRUNNING_ON_BOTH_CORES
                 "   ldr r0, [r2]                    \n" /* r0 = Core number */
             #else
                 "   movs r0, #0                     \n"
-            #endif /* configNUMBER_OF_CORES != 1 */
+            #endif /* portRUNNING_ON_BOTH_CORES */
             "   push {r3, r14}                      \n"
             "   cpsid i                             \n"
             "   bl vTaskSwitchContext               \n"
@@ -975,10 +1001,10 @@ __attribute__( ( weak ) ) void vPortSetupTimerInterrupt( void )
         #if ( configTICK_TYPE_WIDTH_IN_BITS == TICK_TYPE_WIDTH_16_BITS )
             ulBit = 1u << ( spin_lock_get_num( spinLock ) & 0x7u );
         #elif ( configTICK_TYPE_WIDTH_IN_BITS == TICK_TYPE_WIDTH_32_BITS )
-            /* Avoid potential use of SIO divider for % here out of abundance of caution */
-            ulBit = spin_lock_get_num( spinLock );
-            if (ulBit >= 24) ulBit -= 24;
-            ulBit = 1u << ulBit;
+            ulBit = 1u << spin_lock_get_num( spinLock );
+            /* reduce to range 0-24 */
+            ulBit |= ulBit << 8u;
+            ulBit >>= 8u;
         #endif /* configTICK_TYPE_WIDTH_IN_BITS */
         return ( EventBits_t ) ulBit;
     }
@@ -996,8 +1022,8 @@ __attribute__( ( weak ) ) void vPortSetupTimerInterrupt( void )
                                               uint32_t ulSave )
     {
         configASSERT( !portCHECK_IF_IN_ISR() );
-        configASSERT( pxLock->spin_lock );
 
+        /* note no need to check LIB_PICO_MULTICORE, as this is always returns true if that is not defined */
         if( !portIS_FREE_RTOS_CORE() )
         {
             spin_unlock( pxLock->spin_lock, ulSave );
@@ -1005,43 +1031,15 @@ __attribute__( ( weak ) ) void vPortSetupTimerInterrupt( void )
         }
         else
         {
-            /* The requirement (from the SDK) on this implementation is that this method
-             * should always wake up from a corresponding call to vPortLockInternalSpinUnlockWithNotify
-             * that happens after this method is called.
-             *
-             * The moment that we unlock the spin lock, we need to be sure that
-             * there is no way that we end up blocking in xEventGroupWaitBits,
-             * despite the fact that other tasks can now run, if the corresponding
-             * unlock has occurred.
-             *
-             * Previously the RP2xxx ports used to attempt to disable IRQs until the
-             * task actually (potentially) became blocked by hooking the IRQ re-enable
-             * when xEventGroupWaitBits completes (or switches tasks), but this
-             * was a broken hack, in that IRQs are re-enabled at other points during
-             * that call.
-             *
-             * This deferred IRQ enable is not actually needed, because all we
-             * care about is that:
-             *
-             * Even in the presence of other tasks acquiring then releasing
-             * the lock, between the interrupt_enable and the xEventGroupWaitBits,
-             * the corresponding bit will still be set.
-             *
-             * This is the case, even any intervening blocked lock (which
-             * clears the event bit) will need to unlock it before we proceed,
-             * which will set the event bit again.
-             *
-             * The multiplexing down of multiple spin lock numbers to fewer
-             * event bits does not cause a possible race condition,
-             * but it does mean that a task waiting for lock A can be
-             * blocked by a task B which owns another lock.
-             *
-             * This could be fixed by using an array of event groups, however
-             * since the SDK spin locks are generally intended for very short
-             * term usage anyway, and rarely nested except in exotic cases
-             * like video output, we'll leave it as one event group for now
-             */
-            spin_unlock( pxLock->spin_lock, ulSave);
+            configASSERT( pxYieldSpinLock[ portGET_CORE_ID() ] == NULL );
+
+            /* we want to hold the lock until the event bits have been set; since interrupts are currently disabled */
+            /* by the spinlock, we can defer until portENABLE_INTERRUPTS is called which is always called when */
+            /* the scheduler is unlocked during this call */
+            configASSERT( pxLock->spin_lock );
+            int xCoreID = ( int ) portGET_CORE_ID();
+            pxYieldSpinLock[ xCoreID ] = pxLock->spin_lock;
+            ulYieldSpinLockSaveValue[ xCoreID ] = ulSave;
             xEventGroupWaitBits( xEventGroup, prvGetEventGroupBit( pxLock->spin_lock ),
                                  pdTRUE, pdFALSE, portMAX_DELAY );
         }
@@ -1074,7 +1072,11 @@ __attribute__( ( weak ) ) void vPortSetupTimerInterrupt( void )
         else
         {
             __sev();
-            #if ( configNUMBER_OF_CORES == 1 )
+            #if ( portRUNNING_ON_BOTH_CORES == 0 )
+
+                /* We could sent the bits across the FIFO which would have required us to block here if the FIFO was full,
+                 * or we could have just set all bits on the other side, however it seems reasonable instead to take
+                 * the hit of another spin lock to protect an accurate bit set. */
                 if( pxCrossCoreSpinLock != pxLock->spin_lock )
                 {
                     spin_lock_unsafe_blocking( pxCrossCoreSpinLock );
@@ -1088,7 +1090,7 @@ __attribute__( ( weak ) ) void vPortSetupTimerInterrupt( void )
 
                 /* This causes fifo irq on the other (FreeRTOS) core which will do the set the event bits */
                 sio_hw->fifo_wr = 0;
-            #endif /* configNUMBER_OF_CORES == 1 */
+            #endif /* portRUNNING_ON_BOTH_CORES == 0 */
             spin_unlock( pxLock->spin_lock, ulSave );
         }
     }
@@ -1098,7 +1100,6 @@ __attribute__( ( weak ) ) void vPortSetupTimerInterrupt( void )
                                                                  absolute_time_t uxUntil )
     {
         configASSERT( !portCHECK_IF_IN_ISR() );
-        configASSERT( pxLock->spin_lock );
 
         /* note no need to check LIB_PICO_MULTICORE, as this is always returns true if that is not defined */
         if( !portIS_FREE_RTOS_CORE() )
@@ -1109,14 +1110,19 @@ __attribute__( ( weak ) ) void vPortSetupTimerInterrupt( void )
         else
         {
             configASSERT( portIS_FREE_RTOS_CORE() );
+            configASSERT( pxYieldSpinLock[ portGET_CORE_ID() ] == NULL );
 
             TickType_t uxTicksToWait = prvGetTicksToWaitBefore( uxUntil );
 
             if( uxTicksToWait )
             {
-                /* See comment in vPortLockInternalSpinUnlockWithWait for detail
-                 * about possible race conditions */
-                spin_unlock( pxLock->spin_lock, ulSave );
+                /* We want to hold the lock until the event bits have been set; since interrupts are currently disabled
+                 * by the spinlock, we can defer until portENABLE_INTERRUPTS is called which is always called when
+                 * the scheduler is unlocked during this call */
+                configASSERT( pxLock->spin_lock );
+                int xCoreID = ( int ) portGET_CORE_ID();
+                pxYieldSpinLock[ xCoreID ] = pxLock->spin_lock;
+                ulYieldSpinLockSaveValue[ xCoreID ] = ulSave;
                 xEventGroupWaitBits( xEventGroup,
                                      prvGetEventGroupBit( pxLock->spin_lock ), pdTRUE,
                                      pdFALSE, uxTicksToWait );
@@ -1146,9 +1152,9 @@ __attribute__( ( weak ) ) void vPortSetupTimerInterrupt( void )
         {
             /* This must be done even before the scheduler is started, as the spin lock
              * is used by the overrides of the SDK wait/notify primitives */
-            #if ( configNUMBER_OF_CORES == 1 )
+            #if ( portRUNNING_ON_BOTH_CORES == 0 )
                 pxCrossCoreSpinLock = spin_lock_instance( next_striped_spin_lock_num() );
-            #endif /* configNUMBER_OF_CORES == 1 */
+            #endif /* portRUNNING_ON_BOTH_CORES */
 
             /* The event group is not used prior to scheduler init, but is initialized
              * here to since it logically belongs with the spin lock */
