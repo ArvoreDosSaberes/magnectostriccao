@@ -148,7 +148,7 @@ void sample_mic()
 
   dma_channel_start(dma_channel);  // Inicia DMA
   adc_run(true);  // Inicia ADC
-  //dma_channel_wait_for_finish_blocking(dma_channel);
+  //dma_channel_wait_for_finish_blocking(dma_channel); // esta função parece não fazer nada
   vTaskDelay(pdMS_TO_TICKS(((ADC_SAMPLES * 125)/1000)));  // Aguarda a captura (~8kHz)
   adc_run(false);  // Para ADC
 }

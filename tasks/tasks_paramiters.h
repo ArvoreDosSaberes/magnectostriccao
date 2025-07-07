@@ -32,20 +32,20 @@
 #define TASK_ADC_DMA_PRIORITY          (tskIDLE_PRIORITY + 4)
 #define TASK_ADC_DMA_DELAY             (pdMS_TO_TICKS(150))
 
-#define ADC_TO_FFT_QUEUE_TIMEOUT 0 // Tempo de espera para a fila do ADC.
-#define ADC_INTENSITY_QUEUE_TIMEOUT 0 // Tempo de espera para a fila da intensidade.
+#define ADC_TO_FFT_QUEUE_TIMEOUT portMAX_DELAY // Tempo de espera para a fila do ADC.
+#define ADC_INTENSITY_QUEUE_TIMEOUT portMAX_DELAY // Tempo de espera para a fila da intensidade.
 
-#define ADC_TO_FFT_QUEUE_TIMEOUT 0 // Tempo de espera para a fila do ADC.
-#define ADC_INTENSITY_QUEUE_TIMEOUT 0 // Tempo de espera para a fila da intensidade.
+#define ADC_TO_FFT_QUEUE_TIMEOUT portMAX_DELAY // Tempo de espera para a fila do ADC.
+#define ADC_INTENSITY_QUEUE_TIMEOUT portMAX_DELAY // Tempo de espera para a fila da intensidade.
 
 #define ADC_SAMPLES 256 // Número de amostras que serão feitas do ADC. deve ser potência de 2
 #define ADC_QUEUE_LENGTH 30 // Número de amostras que serão armazenadas na fila do ADC.
 
 #define OLED_INIT_QUEUE_TIMEOUT 10 // Tempo de espera para a fila da inicialização do OLED.
-#define ADC_INTENSITY_QUEUE_TIMEOUT 0 // Tempo de espera para a fila da intensidade.
+#define ADC_INTENSITY_QUEUE_TIMEOUT portMAX_DELAY // Tempo de espera para a fila da intensidade.
 #define ADC_INTENSITY_QUEUE_LENGTH 1// 1 PARA PROCESAR O QUE FOR VIÁVEL // Número de amostras que são armazenadas na fila da intensidade.
 
-#define FFT_TO_TINYML_QUEUE_TIMEOUT 5 // Tempo de espera para a fila da FFT.
+#define FFT_TO_TINYML_QUEUE_TIMEOUT portMAX_DELAY // Tempo de espera para a fila da FFT.
 #define TINYML_QUEUE_LENGTH 100 // Número de amostras que são armazenadas na fila da FFT.
 
 #endif

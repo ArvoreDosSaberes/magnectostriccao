@@ -28,18 +28,18 @@
 
 #include "inc/neopixel.h"
 
-#include "inc/magnectostriccao.h" // Carrega parametros gerais do sistema
+#include "inc/magnectostriccao.h"   // Carrega parametros gerais do sistema
 #include "tasks/tasks_paramiters.h" // parametros para criação das tasks
 
-#include "tasks/task_adc_with_dma.h" // carrega tarefas do ADC
-#include "tasks/task_display_oled.h" // Carrega tarefas do display
+#include "tasks/task_adc_with_dma.h"  // carrega tarefas do ADC
+#include "tasks/task_display_oled.h"  // Carrega tarefas do display
 #include "tasks/task_drone_control.h" // Carrega tarefas do controle de drone
-#include "tasks/task_tinyML.h" // Carrega tarefas do TinyML
-#include "tasks/task_fft_filter.h" // Carrega tarefas do filtro FFT
-#include "tasks/task_http_server.h" // Carrega tarefas do http server
-#include "tasks/task_fft_filter.h" // Carrega tarefas do filtro FFT
-#include "tasks/task_vu_leds.h" // Carrega tarefas do leds de volume
-#include "main.h" // carrega cabeçalhos do main
+#include "tasks/task_tinyML.h"        // Carrega tarefas do TinyML
+#include "tasks/task_fft_filter.h"    // Carrega tarefas do filtro FFT
+#include "tasks/task_http_server.h"   // Carrega tarefas do http server
+#include "tasks/task_fft_filter.h"    // Carrega tarefas do filtro FFT
+#include "tasks/task_vu_leds.h"       // Carrega tarefas do leds de volume
+#include "main.h"                     // carrega cabeçalhos do main
 
 // buffer de texto para o display oled
 // definido no arquivo de tarefas do display oled
@@ -72,7 +72,8 @@ int main()
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  if(!start_VU_LED()) return 1;
+  if (!start_VU_LED())
+    return 1;
 
   sleep_ms(INTER_SCREEN_DELAY);
 
@@ -80,28 +81,34 @@ int main()
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  if(!start_ADC_with_DMA()) return 1;
+  if (!start_ADC_with_DMA())
+    return 1;
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  if(!start_tinyML()) return 1;
+  if (!start_tinyML())
+    return 1;
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  if(!start_fft_filter()) return 1;
+  if (!start_fft_filter())
+    return 1;
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  if(!start_network_infrastructure()) return 1;
-
-  sleep_ms(INTER_SCREEN_DELAY);
- 
-  if(!start_gpio_and_drone_control()) return 1;
+  if (!start_network_infrastructure())
+    return 1;
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  if(!start_display_oled()) return 1;
-  
+  if (!start_gpio_and_drone_control())
+    return 1;
+
+  sleep_ms(INTER_SCREEN_DELAY);
+
+  if (!start_display_oled())
+    return 1;
+
   sleep_ms(INTER_SCREEN_DELAY);
 
   strcpy(text_line_oled[0], "               ");
@@ -120,23 +127,24 @@ int main()
     y += ssd1306_line_height;
   }
   render_on_display(ssd, &frame_area);
-  
+
   vTaskStartScheduler();
 
   return 0;
 }
 
-bool start_display_oled(){
+bool start_display_oled()
+{
   BaseType_t xReturn = xTaskCreate(
-    task_display_oled,
-    "Task que mantem o display OLED atualizado",
-    TASK_DISPLAY_OLED_STACK_SIZE,
-    NULL,
-    TASK_DISPLAY_OLED_PRIORITY,
-    NULL
-  );
+      task_display_oled,
+      "Task que mantem o display OLED atualizado",
+      TASK_DISPLAY_OLED_STACK_SIZE,
+      NULL,
+      TASK_DISPLAY_OLED_PRIORITY,
+      NULL);
 
-  if (xReturn != pdPASS) {
+  if (xReturn != pdPASS)
+  {
     strcpy(text_line_oled[0], "     FALHA     ");
     strcpy(text_line_oled[1], " AO CRIAR TASK ");
     strcpy(text_line_oled[2], "      RTOS     ");
@@ -160,7 +168,8 @@ bool start_display_oled(){
   return true;
 }
 
-void init_display_oled(){
+void init_display_oled()
+{
   // Inicialização do i2c
   i2c_init(i2c1, ssd1306_i2c_clock * 1000);
   gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
@@ -175,12 +184,12 @@ void init_display_oled(){
 
   memset(ssd, 0, ssd1306_buffer_length);
   render_on_display(ssd, &frame_area);
-
 }
 /**
  * Mostra a tela de abertura do projeto.
  */
-void show_intro(){
+void show_intro()
+{
   strcpy(text_line_oled[0], "    Projeto    ");
   strcpy(text_line_oled[1], "     Final     ");
   strcpy(text_line_oled[2], "               ");
@@ -335,13 +344,13 @@ void show_intro(){
 
   memset(ssd, 0, ssd1306_buffer_length);
   render_on_display(ssd, &frame_area);
-
 }
 
 /**
  * @brief Exibe mensagens de inicializacao e inicializa a TASKTinyML.
  */
-bool start_tinyML(){
+bool start_tinyML()
+{
   strcpy(text_line_oled[0], "   Ativando    ");
   strcpy(text_line_oled[1], "               ");
   strcpy(text_line_oled[2], "               ");
@@ -361,14 +370,15 @@ bool start_tinyML(){
   render_on_display(ssd, &frame_area);
 
   BaseType_t xReturn = xTaskCreate(
-    task_tinyML, 
-    "tinyML_task", 
-    TASK_TINYML_STACK_SIZE,
-    NULL, 
-    TASK_TINYML_PRIORITY, 
-    NULL);
+      task_tinyML,
+      "tinyML_task",
+      TASK_TINYML_STACK_SIZE,
+      NULL,
+      TASK_TINYML_PRIORITY,
+      NULL);
 
-  if (xReturn != pdPASS) {
+  if (xReturn != pdPASS)
+  {
     strcpy(text_line_oled[0], "     FALHA     ");
     strcpy(text_line_oled[1], " AO CRIAR TASK ");
     strcpy(text_line_oled[2], "      RTOS     ");
@@ -390,13 +400,13 @@ bool start_tinyML(){
     return false;
   }
   return true;
- 
 }
 
 /**
  * @brief Exibe mensagens de inicializacao e inicializa a TASKTinyML.
  */
-bool start_fft_filter(){
+bool start_fft_filter()
+{
   strcpy(text_line_oled[0], "   Ativando    ");
   strcpy(text_line_oled[1], "               ");
   strcpy(text_line_oled[2], "               ");
@@ -415,17 +425,18 @@ bool start_fft_filter(){
   }
   render_on_display(ssd, &frame_area);
 
-  xTinyML_Buffer_Queue = xQueueCreate( TINYML_QUEUE_LENGTH, ( UBaseType_t ) ADC_SAMPLES * sizeof( uint16_t ) );
+  xTinyML_Buffer_Queue = xQueueCreate(TINYML_QUEUE_LENGTH, (UBaseType_t)ADC_SAMPLES * sizeof(uint16_t));
 
   BaseType_t xReturn = xTaskCreate(
-    task_fft_filter, 
-    "FFT Filter task", 
-    TASK_FFT_FILTER_STACK_SIZE,
-    NULL, 
-    TASK_FFT_FILTER_PRIORITY, 
-    NULL);
+      task_fft_filter,
+      "FFT Filter task",
+      TASK_FFT_FILTER_STACK_SIZE,
+      NULL,
+      TASK_FFT_FILTER_PRIORITY,
+      NULL);
 
-  if (xReturn != pdPASS) {
+  if (xReturn != pdPASS)
+  {
     strcpy(text_line_oled[0], "     FALHA     ");
     strcpy(text_line_oled[1], " AO CRIAR TASK ");
     strcpy(text_line_oled[2], "      RTOS     ");
@@ -447,9 +458,7 @@ bool start_fft_filter(){
     return false;
   }
   return true;
- 
 }
-
 
 /**
  * @brief Exibe mensagens de inicializacao e inicializa o ADC com DMA.
@@ -460,7 +469,8 @@ bool start_fft_filter(){
  *
  * @see adc_gpio_init, adc_init, adc_select_input, adc_fifo_setup, adc_set_clkdiv, dma_claim_unused_channel, channel_config_set_transfer_data_size, channel_config_set_read_increment, channel_config_set_write_increment, channel_config_set_dreq, sample_mic
  */
-bool start_ADC_with_DMA(){
+bool start_ADC_with_DMA()
+{
   strcpy(text_line_oled[0], "   Ativando    ");
   strcpy(text_line_oled[1], "               ");
   strcpy(text_line_oled[2], "      ADC      ");
@@ -478,17 +488,18 @@ bool start_ADC_with_DMA(){
     y += ssd1306_line_height;
   }
   render_on_display(ssd, &frame_area);
-   
-  xFFT_Buffer_Queue = xQueueCreate( ADC_QUEUE_LENGTH, ( UBaseType_t ) ADC_SAMPLES * sizeof( uint16_t ) );
-  xIntensity_Buffer_Queue = xQueueCreate( ADC_INTENSITY_QUEUE_LENGTH, ( UBaseType_t ) sizeof( uint ) );
+
+  xFFT_Buffer_Queue = xQueueCreate(ADC_QUEUE_LENGTH, (UBaseType_t)ADC_SAMPLES * sizeof(uint16_t));
+  xIntensity_Buffer_Queue = xQueueCreate(ADC_INTENSITY_QUEUE_LENGTH, (UBaseType_t)sizeof(uint));
   BaseType_t xReturn = xTaskCreate(
-    task_adc_with_dma, 
-    "Task ADC com DMA", 
-    TASK_ADC_DMA_STACK_SIZE,
-    NULL, 
-    TASK_ADC_DMA_PRIORITY, 
-    NULL);
-  if (xReturn != pdPASS) {
+      task_adc_with_dma,
+      "Task ADC com DMA",
+      TASK_ADC_DMA_STACK_SIZE,
+      NULL,
+      TASK_ADC_DMA_PRIORITY,
+      NULL);
+  if (xReturn != pdPASS)
+  {
     strcpy(text_line_oled[0], "     FALHA     ");
     strcpy(text_line_oled[1], " AO CRIAR TASK ");
     strcpy(text_line_oled[2], "      RTOS     ");
@@ -510,19 +521,19 @@ bool start_ADC_with_DMA(){
     return false;
   }
   return true;
-
 }
 
 /**
  * @brief Exibe mensagens de inicializacao e inicializa o VU de LEDs.
- * 
+ *
  * @details
- * INicializa o VU de LEDs para que seja possível monitorar o nível de audio 
+ * INicializa o VU de LEDs para que seja possível monitorar o nível de audio
  * captado.
  *
  * @see npInit
  */
-bool start_VU_LED(){
+bool start_VU_LED()
+{
   strcpy(text_line_oled[0], "   Ativando    ");
   strcpy(text_line_oled[1], "               ");
   strcpy(text_line_oled[2], "               ");
@@ -543,16 +554,97 @@ bool start_VU_LED(){
 
   npInit(MATRIZ_LED_PIN, MATRIZ_LED_COUNT);
 
-  BaseType_t xReturn = xTaskCreate(
-    task_vu_leds,
-    "Task de VU LEDs",
-    TASK_VU_LEDS_STACK_SIZE,
-    NULL,
-    TASK_VU_LEDS_PRIORITY,
-    NULL
-  );
+  printf("VU de LEDs inicializada \n");
+  // acente os para diagnostico da task com vu
+  npSetLED(12, 0, 0, 80); // Acende apenas o centro.
+  printf("Acende apenas o centro.\n");
+  npWrite();
+  sleep_ms((500));
+
+  npSetLED(12, 0, 0, 120); // Acente o centro.
+  printf("Acente o centro.\n");
   
-  if (xReturn != pdPASS) {
+  // Primeiro anel.
+  npSetLED(7, 0, 0, 80);
+  npSetLED(11, 0, 0, 80);
+  npSetLED(13, 0, 0, 80);
+  npSetLED(17, 0, 0, 80);
+  printf("Primeiro anel.\n");
+  npWrite();
+  sleep_ms((500));
+
+  // Centro.
+  npSetLED(12, 60, 60, 0);
+  printf("Centro.\n");
+
+  // Primeiro anel.
+  npSetLED(7, 0, 0, 120);
+  npSetLED(11, 0, 0, 120);
+  npSetLED(13, 0, 0, 120);
+  npSetLED(17, 0, 0, 120);
+  printf("Primeiro anel.\n");
+
+  // Segundo anel.
+  npSetLED(2, 0, 0, 80);
+  npSetLED(6, 0, 0, 80);
+  npSetLED(8, 0, 0, 80);
+  npSetLED(10, 0, 0, 80);
+  npSetLED(14, 0, 0, 80);
+  npSetLED(16, 0, 0, 80);
+  npSetLED(18, 0, 0, 80);
+  npSetLED(22, 0, 0, 80);
+  printf("Segundo anel.\n");
+  npWrite();
+  sleep_ms((500));
+
+  // Centro.
+  npSetLED(12, 80, 0, 0);
+  printf("Centro.\n");
+
+  // Primeiro anel.
+  npSetLED(7, 60, 60, 0);
+  npSetLED(11, 60, 60, 0);
+  npSetLED(13, 60, 60, 0);
+  npSetLED(17, 60, 60, 0);
+  printf("Primeiro anel.\n");
+
+  // Segundo anel.
+  npSetLED(2, 0, 0, 120);
+  npSetLED(6, 0, 0, 120);
+  npSetLED(8, 0, 0, 120);
+  npSetLED(10, 0, 0, 120);
+  npSetLED(14, 0, 0, 120);
+  npSetLED(16, 0, 0, 120);
+  npSetLED(18, 0, 0, 120);
+  npSetLED(22, 0, 0, 120);
+  printf("Segundo anel.\n");
+
+  // Terceiro anel.
+  npSetLED(1, 0, 0, 80);
+  npSetLED(3, 0, 0, 80);
+  npSetLED(5, 0, 0, 80);
+  npSetLED(9, 0, 0, 80);
+  npSetLED(15, 0, 0, 80);
+  npSetLED(19, 0, 0, 80);
+  npSetLED(21, 0, 0, 80);
+  npSetLED(23, 0, 0, 80);
+  printf("Terceiro anel.\n");
+  npWrite();
+  sleep_ms((500));
+
+  npClear();
+  npWrite();
+
+  BaseType_t xReturn = xTaskCreate(
+      task_vu_leds,
+      "Task de VU LEDs",
+      TASK_VU_LEDS_STACK_SIZE,
+      NULL,
+      TASK_VU_LEDS_PRIORITY,
+      NULL);
+
+  if (xReturn != pdPASS)
+  {
     strcpy(text_line_oled[0], "     FALHA     ");
     strcpy(text_line_oled[1], " AO CRIAR TASK ");
     strcpy(text_line_oled[2], "      RTOS     ");
@@ -581,11 +673,12 @@ bool start_VU_LED(){
  *
  * @details
  *  - Exibe mensagens de inicializacao na tela.
- *  - Configura os botoes A e B para serem monitorados por interrupcoes. 
+ *  - Configura os botoes A e B para serem monitorados por interrupcoes.
  *
  * @see task_buttons_control
  */
-void start_bottons_control(){
+void start_bottons_control()
+{
   strcpy(text_line_oled[0], "   Ativando    ");
   strcpy(text_line_oled[1], "               ");
   strcpy(text_line_oled[2], "               ");
@@ -636,19 +729,19 @@ void start_bottons_control(){
     y += ssd1306_line_height;
   }
   render_on_display(ssd, &frame_area);
-
 }
 
 /**
  * @brief Inicializa e verifica atuadores e sensores do drone.
  *
  * @details
- *  - Exibe mensagens de inicializacao na tela. 
+ *  - Exibe mensagens de inicializacao na tela.
  *  - Cria a task task_drone_control que ira controlar o drone.
  *
  * @see task_drone_control
  */
-bool start_gpio_and_drone_control(){
+bool start_gpio_and_drone_control()
+{
   strcpy(text_line_oled[0], " Inicializando ");
   strcpy(text_line_oled[1], "               ");
   strcpy(text_line_oled[2], "               ");
@@ -669,20 +762,20 @@ bool start_gpio_and_drone_control(){
   /////////////////////////////////////////////////////////
   // inicializa e verifica atuadores e sensores do drone //
   /////////////////////////////////////////////////////////
- 
+
   // ativa adc do joistick
-  adc_gpio_init(26); 
+  adc_gpio_init(26);
   adc_gpio_init(27);
 
   BaseType_t xReturn = xTaskCreate(
-    task_drone_control,
-    "Task Drone Ctrl",
-    TASK_DRONE_CONTROL_STACK_SIZE,
-    NULL,
-    TASK_DRONE_CONTROL_PRIORITY,
-    NULL
-  );
-    if (xReturn != pdPASS) {
+      task_drone_control,
+      "Task Drone Ctrl",
+      TASK_DRONE_CONTROL_STACK_SIZE,
+      NULL,
+      TASK_DRONE_CONTROL_PRIORITY,
+      NULL);
+  if (xReturn != pdPASS)
+  {
     strcpy(text_line_oled[0], "     FALHA     ");
     strcpy(text_line_oled[1], " AO CRIAR TASK ");
     strcpy(text_line_oled[2], "      RTOS     ");
@@ -704,13 +797,13 @@ bool start_gpio_and_drone_control(){
     return false;
   }
   return true;
-
 }
 
 /**
  * Inicia a infraestrutura de rede.
  */
-bool start_network_infrastructure(){
+bool start_network_infrastructure()
+{
   if (cyw43_arch_init_with_country(CYW43_COUNTRY_BRAZIL))
   {
     strcpy(text_line_oled[0], "    ATENCAO    ");
@@ -734,7 +827,8 @@ bool start_network_infrastructure(){
 
   cyw43_arch_enable_sta_mode();
   uint8_t count = 0;
-  while(count < 3 && cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 10000) != 0){
+  while (count < 3 && cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 10000) != 0)
+  {
     strcpy(text_line_oled[0], "    ATENCAO    ");
     strcpy(text_line_oled[1], "    FALHA NA   ");
     strcpy(text_line_oled[2], "               ");
@@ -750,11 +844,12 @@ bool start_network_infrastructure(){
       y += ssd1306_line_height;
     }
     render_on_display(ssd, &frame_area);
-    sleep_ms(INTER_SCREEN_DELAY/(1.0/3));
+    sleep_ms(INTER_SCREEN_DELAY / (1.0 / 3));
   }
-    
-  if (count==3) return false;
-  
+
+  if (count == 3)
+    return false;
+
   // Read the ip address in a human readable way
   uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
   strcpy(text_line_oled[0], " INICIALIZANDO ");
@@ -776,14 +871,15 @@ bool start_network_infrastructure(){
   // Inicia o servidor HTTP
   start_http_server();
   BaseType_t xReturn = xTaskCreate(
-    task_http_server, 
-    "Task HTTP Server", 
-    TASK_HTTP_SERVER_STACK_SIZE, 
-    NULL, 
-    TASK_HTTP_SERVER_PRIORITY, 
-    NULL);
+      task_http_server,
+      "Task HTTP Server",
+      TASK_HTTP_SERVER_STACK_SIZE,
+      NULL,
+      TASK_HTTP_SERVER_PRIORITY,
+      NULL);
 
-  if (xReturn != pdPASS) {
+  if (xReturn != pdPASS)
+  {
     strcpy(text_line_oled[0], "     FALHA     ");
     strcpy(text_line_oled[1], " AO CRIAR TASK ");
     strcpy(text_line_oled[2], "      RTOS     ");
@@ -805,7 +901,6 @@ bool start_network_infrastructure(){
     return false;
   }
   return true;
-
 }
 
 // #########################################
@@ -823,7 +918,8 @@ static void start_http_server(void)
     strcpy(text_line_oled[3], "    de Rede    ");
     strcpy(text_line_oled[4], "     Wi-FI     ");
     strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], " Erro criando  ");;
+    strcpy(text_line_oled[6], " Erro criando  ");
+    ;
     strcpy(text_line_oled[7], "      PCB      ");
 
     uint8_t y = 0;
@@ -839,13 +935,14 @@ static void start_http_server(void)
   // Liga o servidor na porta 80
   if (tcp_bind(pcb, IP_ADDR_ANY, 80) != ERR_OK)
   {
-  strcpy(text_line_oled[0], " INICIALIZANDO ");
+    strcpy(text_line_oled[0], " INICIALIZANDO ");
     strcpy(text_line_oled[1], "               ");
     strcpy(text_line_oled[2], " Infraestrutra ");
     strcpy(text_line_oled[3], "    de Rede    ");
     strcpy(text_line_oled[4], "     Wi-FI     ");
     strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], " Erro conectar ");;
+    strcpy(text_line_oled[6], " Erro conectar ");
+    ;
     strcpy(text_line_oled[7], " serv. porta 80");
 
     uint8_t y = 0;
@@ -861,22 +958,23 @@ static void start_http_server(void)
   pcb = tcp_listen(pcb);                // Coloca o PCB em modo de escuta
   tcp_accept(pcb, connection_callback); // Associa o callback de conexão
 
-    strcpy(text_line_oled[0], " INICIALIZANDO ");
-    strcpy(text_line_oled[1], "               ");
-    strcpy(text_line_oled[2], " Infraestrutra ");
-    strcpy(text_line_oled[3], "    de Rede    ");
-    strcpy(text_line_oled[4], "     Wi-FI     ");
-    strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], " SERRVIDOR WEB ");;
-    strcpy(text_line_oled[7], "   CONECTADO   ");
+  strcpy(text_line_oled[0], " INICIALIZANDO ");
+  strcpy(text_line_oled[1], "               ");
+  strcpy(text_line_oled[2], " Infraestrutra ");
+  strcpy(text_line_oled[3], "    de Rede    ");
+  strcpy(text_line_oled[4], "     Wi-FI     ");
+  strcpy(text_line_oled[5], "               ");
+  strcpy(text_line_oled[6], " SERRVIDOR WEB ");
+  ;
+  strcpy(text_line_oled[7], "   CONECTADO   ");
 
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+  uint8_t y = 0;
+  for (uint i = 0; i < count_of(text_line_oled); i++)
+  {
+    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
+    y += ssd1306_line_height;
+  }
+  render_on_display(ssd, &frame_area);
 }
 
 // Estado dos botões (inicialmente sem mensagens)
@@ -891,7 +989,8 @@ char json_response[1024 * 8]; // tamanho a ser definido
  * Função para criar a resposta JSON
  */
 
-void create_json_update_response(){
+void create_json_update_response()
+{
   // constroi a respsota json
   // a resposta deve conter a situação atual do sistema
   // isso inclue a localização obtida no gps do drone
@@ -909,9 +1008,10 @@ void create_json_update_response(){
            "}\r\n"
            "\r\n");
 }
-void create_json_noise_response(){
-  /// constroi resposta em sjson, 
-  /// talvez cjson, ou uma solução mais simples já que será enviados 
+void create_json_noise_response()
+{
+  /// constroi resposta em sjson,
+  /// talvez cjson, ou uma solução mais simples já que será enviados
   /// apenas uma sequência de números que representa as amostragem do ADC
   snprintf(http_response, sizeof(http_response),
            "HTTP/1.1 200 OK\r\nContent-Type: text/json; charset=UTF-8\r\n\r\n"
@@ -925,7 +1025,6 @@ void create_json_noise_response(){
            "  }\r\n"
            "}\r\n"
            "\r\n");
-  
 }
 
 /**
@@ -958,7 +1057,8 @@ static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_
     /**
      * ajusta o angulo de captação do acoplador acustico
      */
-  }else if (strstr(request, "POST /aceleration/xy"))
+  }
+  else if (strstr(request, "POST /aceleration/xy"))
   {
     if (!modo_local)
     {
@@ -970,8 +1070,8 @@ static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_
     // Envia a resposta HTTP
     create_http_response();
     tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
-  
-  }else if (strstr(request, "POST /aceleration/x"))
+  }
+  else if (strstr(request, "POST /aceleration/x"))
   {
     // obtem na requisição o valor do eixo X
     if (!modo_local)
@@ -985,14 +1085,14 @@ static err_t http_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_
     tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);
   }
   else if (strstr(request, "POST /aceleration/y"))
+  {
+    // obtem na requisição o valor do eixo Y
+    if (!modo_local)
     {
-      // obtem na requisição o valor do eixo Y
-      if (!modo_local)
-      {
-        // obtem na requisição a posição y desejada
-        // aceleration_y = y;
-      }
-      
+      // obtem na requisição a posição y desejada
+      // aceleration_y = y;
+    }
+
     // Envia a resposta HTTP
     create_http_response();
     tcp_write(tpcb, http_response, strlen(http_response), TCP_WRITE_FLAG_COPY);

@@ -5,13 +5,11 @@
 #include "semphr.h"
 #include "queue.h"
 
-
 #include "inc/neopixel.h"
 
 #include "inc/magnectostriccao.h"
 #include "tasks_paramiters.h"
 #include "task_vu_leds.h"
-
 
 extern QueueHandle_t xIntensity_Buffer_Queue;
 
@@ -23,6 +21,76 @@ void task_vu_leds(void *pvParameters)
   // O código abaixo deve ser transportado para a TASK (FreeRTOS) que
   // faz o processamento da amostragem via DMA
 
+  // acente os para diagnostico da task com vu
+  npSetLED(12, 0, 0, 80); // Acende apenas o centro.
+  npWrite();
+  vTaskDelay(pdMS_TO_TICKS(500));
+
+  npSetLED(12, 0, 0, 120); // Acente o centro.
+
+  // Primeiro anel.
+  npSetLED(7, 0, 0, 80);
+  npSetLED(11, 0, 0, 80);
+  npSetLED(13, 0, 0, 80);
+  npSetLED(17, 0, 0, 80);
+  npWrite();
+  vTaskDelay(pdMS_TO_TICKS(500));
+
+  // Centro.
+  npSetLED(12, 60, 60, 0);
+
+  // Primeiro anel.
+  npSetLED(7, 0, 0, 120);
+  npSetLED(11, 0, 0, 120);
+  npSetLED(13, 0, 0, 120);
+  npSetLED(17, 0, 0, 120);
+
+  // Segundo anel.
+  npSetLED(2, 0, 0, 80);
+  npSetLED(6, 0, 0, 80);
+  npSetLED(8, 0, 0, 80);
+  npSetLED(10, 0, 0, 80);
+  npSetLED(14, 0, 0, 80);
+  npSetLED(16, 0, 0, 80);
+  npSetLED(18, 0, 0, 80);
+  npSetLED(22, 0, 0, 80);
+  npWrite();
+  vTaskDelay(pdMS_TO_TICKS(500));
+
+  // Centro.
+  npSetLED(12, 80, 0, 0);
+
+  // Primeiro anel.
+  npSetLED(7, 60, 60, 0);
+  npSetLED(11, 60, 60, 0);
+  npSetLED(13, 60, 60, 0);
+  npSetLED(17, 60, 60, 0);
+
+  // Segundo anel.
+  npSetLED(2, 0, 0, 120);
+  npSetLED(6, 0, 0, 120);
+  npSetLED(8, 0, 0, 120);
+  npSetLED(10, 0, 0, 120);
+  npSetLED(14, 0, 0, 120);
+  npSetLED(16, 0, 0, 120);
+  npSetLED(18, 0, 0, 120);
+  npSetLED(22, 0, 0, 120);
+
+  // Terceiro anel.
+  npSetLED(1, 0, 0, 80);
+  npSetLED(3, 0, 0, 80);
+  npSetLED(5, 0, 0, 80);
+  npSetLED(9, 0, 0, 80);
+  npSetLED(15, 0, 0, 80);
+  npSetLED(19, 0, 0, 80);
+  npSetLED(21, 0, 0, 80);
+  npSetLED(23, 0, 0, 80);
+
+  npWrite();
+  vTaskDelay(pdMS_TO_TICKS(500));
+  npClear();
+  npWrite();
+
   TickType_t xLastWakeTime = xTaskGetTickCount();
   while (1)
   {
@@ -33,7 +101,8 @@ void task_vu_leds(void *pvParameters)
     npClear();
 
     uint intensity;
-    if(xQueueReceive(xIntensity_Buffer_Queue, &intensity, OLED_INIT_QUEUE_TIMEOUT) != pdPASS) {
+    if (xQueueReceive(xIntensity_Buffer_Queue, &intensity, OLED_INIT_QUEUE_TIMEOUT) != pdPASS)
+    {
       printf("Nao recebeu intensidade\n");
       continue;
     }
@@ -109,7 +178,7 @@ void task_vu_leds(void *pvParameters)
     npWrite();
 
     printf("Antes da pausa Loop Task VU LEDs %d\n", xLastWakeTime);
-    xTaskDelayUntil(&xLastWakeTime, TASK_ADC_DMA_DELAY );
+    xTaskDelayUntil(&xLastWakeTime, TASK_ADC_DMA_DELAY);
     printf("FIM LOOP Task VU LEDs %d\n", xLastWakeTime);
 
     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
