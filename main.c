@@ -158,6 +158,35 @@ bool start_display_oled()
 void init_display_oled()
 {
   oled_init();
+
+  oled_clear();
+
+  for (char i = '0'; i <= '9'; i++) {  
+    oled_draw_big_char(56, 16, i);
+    oled_render();
+    sleep_ms(100);
+  }
+
+  // Print all printable ASCII characters on OLED for testing
+  const int first_char = 32;
+  const int last_char = 126;
+  char buf[max_text_columns + 1];
+  for (int base = first_char; base <= last_char; base += max_text_columns) {
+    for (int i = 0; i < max_text_columns; ++i) {
+      int ch = base + i;
+      buf[i] = (ch <= last_char) ? (char)ch : ' ';
+    }
+    buf[max_text_columns] = '\0';
+
+    // Clear and render buffer
+    oled_clear();
+    oled_draw_string(0, 0, buf);
+    oled_render();
+    sleep_ms(500);
+  }
+
+  // Clear after test
+  oled_clear();
 }
 /**
  * Mostra a tela de abertura do projeto.
