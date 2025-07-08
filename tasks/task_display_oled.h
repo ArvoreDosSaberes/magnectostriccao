@@ -3,7 +3,7 @@
  * 
  * 
  * @details 
- *  Obtem no array text_line_oled o texto a ser exibido no display OLED.
+ *  Renderiza no display OLED as linhas de texto definidas pela OLED facade, usando oled_set_text_line() e oled_render_text().
  * 
  * @see task_adc_with_dma
  */

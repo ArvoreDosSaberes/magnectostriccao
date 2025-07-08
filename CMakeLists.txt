@@ -51,7 +51,8 @@ pico_sdk_init()
 
 add_executable(${PROJECT_NAME} main.c  
         inc/neopixel.c
-        inc/ssd1306_i2c.c
+        inc/oled/ssd1306_i2c.c
+        inc/oled/oled.c
         tasks/freeRTOS_helpers.c
         tasks/task_drone_control.c
         tasks/task_adc_with_dma.c
@@ -75,6 +76,8 @@ pico_enable_stdio_usb(${PROJECT_NAME} 1)
 # Add the standard include files to the build
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/inc
+        ${CMAKE_CURRENT_LIST_DIR}/inc/oled
 )
 
 include_directories(${INCLUDES})

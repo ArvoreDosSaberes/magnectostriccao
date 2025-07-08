@@ -20,11 +20,12 @@
 #include "hardware/adc.h"
 #include "hardware/dma.h"
 
-#include "hardware/i2c.h"
-
 #include "lwip/tcp.h"
 
-#include "inc/ssd1306.h"
+#include "oled.h"
+
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "inc/neopixel.h"
 
@@ -44,11 +45,11 @@
 // buffer de texto para o display oled
 // definido no arquivo de tarefas do display oled
 // tasks/task_display_oled.h
-extern char text_line_oled[max_text_lines][max_text_columns];
+
 // Preparar área de renderização para o display (ssd1306_width pixels por ssd1306_n_pages páginas)
-extern struct render_area frame_area;
+
 // zera o display inteiro
-extern uint8_t ssd[ssd1306_buffer_length];
+
 
 // Buffer de amostras do ADC.
 static uint32_t last_time;
@@ -111,22 +112,15 @@ int main()
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  strcpy(text_line_oled[0], "               ");
-  strcpy(text_line_oled[1], "Inicializando o");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "  escalonador  ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "      de       ");
-  strcpy(text_line_oled[6], "    rarefas    ");
-  strcpy(text_line_oled[7], "               ");
-
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(0, "               ");
+  oled_set_text_line(1, "Inicializando o");
+  oled_set_text_line(2, "               ");
+  oled_set_text_line(3, "  escalonador  ");
+  oled_set_text_line(4, "               ");
+  oled_set_text_line(5, "      de       ");
+  oled_set_text_line(6, "    rarefas    ");
+  oled_set_text_line(7, "               ");
+  oled_render_text();
 
   vTaskStartScheduler();
 
@@ -145,22 +139,15 @@ bool start_display_oled()
 
   if (xReturn != pdPASS)
   {
-    strcpy(text_line_oled[0], "     FALHA     ");
-    strcpy(text_line_oled[1], " AO CRIAR TASK ");
-    strcpy(text_line_oled[2], "      RTOS     ");
-    strcpy(text_line_oled[3], "               ");
-    strcpy(text_line_oled[4], "               ");
-    strcpy(text_line_oled[5], " DISPLAY OLED  ");
-    strcpy(text_line_oled[6], "               ");
-    strcpy(text_line_oled[7], "               ");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, "     FALHA     ");
+    oled_set_text_line(1, " AO CRIAR TASK ");
+    oled_set_text_line(2, "      RTOS     ");
+    oled_set_text_line(3, "               ");
+    oled_set_text_line(4, "               ");
+    oled_set_text_line(5, " DISPLAY OLED  ");
+    oled_set_text_line(6, "               ");
+    oled_set_text_line(7, "               ");
+    oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
     return false;
@@ -170,180 +157,41 @@ bool start_display_oled()
 
 void init_display_oled()
 {
-  // Inicialização do i2c
-  i2c_init(i2c1, ssd1306_i2c_clock * 1000);
-  gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-  gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-  gpio_pull_up(I2C_SDA);
-  gpio_pull_up(I2C_SCL);
-
-  // Processo de inicialização completo do OLED SSD1306
-  ssd1306_init();
-
-  calculate_render_area_buffer_length(&frame_area);
-
-  memset(ssd, 0, ssd1306_buffer_length);
-  render_on_display(ssd, &frame_area);
+  oled_init();
 }
 /**
  * Mostra a tela de abertura do projeto.
  */
 void show_intro()
 {
-  strcpy(text_line_oled[0], "    Projeto    ");
-  strcpy(text_line_oled[1], "     Final     ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "  EmbarcaTech  ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "   Residencia  ");
-  strcpy(text_line_oled[6], "     TIC 37    ");
-  strcpy(text_line_oled[7], "               ");
-
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
+  static const char *slides[][max_text_lines] = {
+      {"    Projeto    ", "     Final     ", "               ", "  EmbarcaTech  ", "               ", "   Residencia  ", "     TIC 37    ", "               "},
+      {"  Analizador   ", "  da Saude de  ", "               ", "Transformadores", "      por      ", "               ", "Magnetostriccao", "               "},
+      {"  da Saude de  ", "               ", "Transformadores", "      por      ", "               ", "Magnetostriccao", "               ", "               "},
+      {"               ", "Transformadores", "      por      ", "               ", "Magnetostriccao", "               ", "               ", "               "},
+      {"Transformadores", "      por      ", "               ", "Magnetostriccao", "               ", "               ", "               ", "               "},
+      {"      por      ", "               ", "Magnetostriccao", "               ", "               ", "               ", "               ", "               "},
+      {"               ", "Magnetostriccao", "               ", "               ", "               ", "               ", "               ", "               "},
+      {"Magnetostriccao", "               ", "               ", "               ", "               ", "               ", "               ", "               "}
+  };
+  const uint32_t delays[] = {
+      INTER_SCREEN_DELAY * 3,
+      (INTER_SCREEN_DELAY * 5) / 4,
+      OLED_SCROOL_DELAY,
+      OLED_SCROOL_DELAY,
+      OLED_SCROOL_DELAY,
+      OLED_SCROOL_DELAY,
+      OLED_SCROOL_DELAY,
+      OLED_SCROOL_DELAY
+  };
+  for (size_t slide = 0; slide < sizeof(slides)/sizeof(slides[0]); ++slide) {
+      for (uint8_t i = 0; i < max_text_lines; ++i) {
+          oled_set_text_line(i, slides[slide][i]);
+      }
+      oled_render_text();
+      sleep_ms(delays[slide]);
   }
-  render_on_display(ssd, &frame_area);
-
-  sleep_ms(INTER_SCREEN_DELAY * 3);
-
-  strcpy(text_line_oled[0], "  Analizador   ");
-  strcpy(text_line_oled[1], "  da Saude de  ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "Transformadores");
-  strcpy(text_line_oled[4], "      por      ");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], "Magnetostriccao");
-  strcpy(text_line_oled[7], "               ");
-
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
-
-  sleep_ms(INTER_SCREEN_DELAY * 1.25);
-
-  strcpy(text_line_oled[0], "  da Saude de  ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "Transformadores");
-  strcpy(text_line_oled[3], "      por      ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "Magnetostriccao");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
-
-  sleep_ms(OLED_SCROOL_DELAY);
-
-  strcpy(text_line_oled[0], "               ");
-  strcpy(text_line_oled[1], "Transformadores");
-  strcpy(text_line_oled[2], "      por      ");
-  strcpy(text_line_oled[3], "               ");
-  strcpy(text_line_oled[4], "Magnetostriccao");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
-
-  sleep_ms(OLED_SCROOL_DELAY);
-
-  strcpy(text_line_oled[0], "Transformadores");
-  strcpy(text_line_oled[1], "      por      ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "Magnetostriccao");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
-
-  sleep_ms(OLED_SCROOL_DELAY);
-
-  strcpy(text_line_oled[0], "      por      ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "Magnetostriccao");
-  strcpy(text_line_oled[3], "               ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
-
-  sleep_ms(OLED_SCROOL_DELAY);
-
-  strcpy(text_line_oled[0], "               ");
-  strcpy(text_line_oled[1], "Magnetostriccao");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "               ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
-
-  sleep_ms(OLED_SCROOL_DELAY);
-
-  strcpy(text_line_oled[0], "Magnetostriccao");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "               ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
-
-  sleep_ms(OLED_SCROOL_DELAY);
-
-  memset(ssd, 0, ssd1306_buffer_length);
-  render_on_display(ssd, &frame_area);
+  oled_render();
 }
 
 /**
@@ -351,23 +199,15 @@ void show_intro()
  */
 bool start_tinyML()
 {
-  strcpy(text_line_oled[0], "   Ativando    ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "    TinyML     ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], " Redes Neurais ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  // ssd1306_write_array(ssd, &frame_area, &text);
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(0, "   Ativando    ");
+  oled_set_text_line(1, "               ");
+  oled_set_text_line(2, "               ");
+  oled_set_text_line(3, "    TinyML     ");
+  oled_set_text_line(4, "               ");
+  oled_set_text_line(5, " Redes Neurais ");
+  oled_set_text_line(6, "               ");
+  oled_set_text_line(7, "               ");
+  oled_render_text();
 
   BaseType_t xReturn = xTaskCreate(
       task_tinyML,
@@ -379,22 +219,15 @@ bool start_tinyML()
 
   if (xReturn != pdPASS)
   {
-    strcpy(text_line_oled[0], "     FALHA     ");
-    strcpy(text_line_oled[1], " AO CRIAR TASK ");
-    strcpy(text_line_oled[2], "      RTOS     ");
-    strcpy(text_line_oled[3], "               ");
-    strcpy(text_line_oled[4], "               ");
-    strcpy(text_line_oled[5], "     tinyML    ");
-    strcpy(text_line_oled[6], "               ");
-    strcpy(text_line_oled[7], "               ");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, "     FALHA     ");
+    oled_set_text_line(1, " AO CRIAR TASK ");
+    oled_set_text_line(2, "      RTOS     ");
+    oled_set_text_line(3, "               ");
+    oled_set_text_line(4, "               ");
+    oled_set_text_line(5, "     tinyML    ");
+    oled_set_text_line(6, "               ");
+    oled_set_text_line(7, "               ");
+    oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
     return false;
@@ -407,23 +240,15 @@ bool start_tinyML()
  */
 bool start_fft_filter()
 {
-  strcpy(text_line_oled[0], "   Ativando    ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "               ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "   FFT filter  ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  // ssd1306_write_array(ssd, &frame_area, &text);
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(0, "   Ativando    ");
+  oled_set_text_line(1, "               ");
+  oled_set_text_line(2, "               ");
+  oled_set_text_line(3, "               ");
+  oled_set_text_line(4, "               ");
+  oled_set_text_line(5, "   FFT filter  ");
+  oled_set_text_line(6, "               ");
+  oled_set_text_line(7, "               ");
+  oled_render_text();
 
   xTinyML_Buffer_Queue = xQueueCreate(TINYML_QUEUE_LENGTH, (UBaseType_t)ADC_SAMPLES * sizeof(uint16_t));
 
@@ -437,22 +262,15 @@ bool start_fft_filter()
 
   if (xReturn != pdPASS)
   {
-    strcpy(text_line_oled[0], "     FALHA     ");
-    strcpy(text_line_oled[1], " AO CRIAR TASK ");
-    strcpy(text_line_oled[2], "      RTOS     ");
-    strcpy(text_line_oled[3], "               ");
-    strcpy(text_line_oled[4], "               ");
-    strcpy(text_line_oled[5], "   FFT filter  ");
-    strcpy(text_line_oled[6], "               ");
-    strcpy(text_line_oled[7], "               ");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, "     FALHA     ");
+    oled_set_text_line(1, " AO CRIAR TASK ");
+    oled_set_text_line(2, "      RTOS     ");
+    oled_set_text_line(3, "               ");
+    oled_set_text_line(4, "               ");
+    oled_set_text_line(5, "   FFT filter  ");
+    oled_set_text_line(6, "               ");
+    oled_set_text_line(7, "               ");
+    oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
     return false;
@@ -471,23 +289,20 @@ bool start_fft_filter()
  */
 bool start_ADC_with_DMA()
 {
-  strcpy(text_line_oled[0], "   Ativando    ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "      ADC      ");
-  strcpy(text_line_oled[3], "               ");
-  strcpy(text_line_oled[4], "    Por DMA    ");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
+  oled_set_text_line(0, "   Ativando    ");
+  oled_set_text_line(1, "               ");
+  oled_set_text_line(2, "      ADC      ");
+  oled_set_text_line(3, "               ");
+  oled_set_text_line(4, "    Por DMA    ");
+  oled_set_text_line(5, "               ");
+  oled_set_text_line(6, "               ");
+  oled_set_text_line(7, "               ");
+  oled_render_text();
 
   // ssd1306_write_array(ssd, &frame_area, &text);
   uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_clear();
+  oled_render_text();
 
   xFFT_Buffer_Queue = xQueueCreate(ADC_QUEUE_LENGTH, (UBaseType_t)ADC_SAMPLES * sizeof(uint16_t));
   xIntensity_Buffer_Queue = xQueueCreate(ADC_INTENSITY_QUEUE_LENGTH, (UBaseType_t)sizeof(uint));
@@ -500,22 +315,15 @@ bool start_ADC_with_DMA()
       NULL);
   if (xReturn != pdPASS)
   {
-    strcpy(text_line_oled[0], "     FALHA     ");
-    strcpy(text_line_oled[1], " AO CRIAR TASK ");
-    strcpy(text_line_oled[2], "      RTOS     ");
-    strcpy(text_line_oled[3], "               ");
-    strcpy(text_line_oled[4], "               ");
-    strcpy(text_line_oled[5], "  ADC COM DMA  ");
-    strcpy(text_line_oled[6], "               ");
-    strcpy(text_line_oled[7], "               ");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, "     FALHA     ");
+    oled_set_text_line(1, " AO CRIAR TASK ");
+    oled_set_text_line(2, "      RTOS     ");
+    oled_set_text_line(3, "               ");
+    oled_set_text_line(4, "               ");
+    oled_set_text_line(5, "  ADC COM DMA  ");
+    oled_set_text_line(6, "               ");
+    oled_set_text_line(7, "               ");
+    oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
     return false;
@@ -534,23 +342,20 @@ bool start_ADC_with_DMA()
  */
 bool start_VU_LED()
 {
-  strcpy(text_line_oled[0], "   Ativando    ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "  VU de LEDs   ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
+  oled_set_text_line(0, "   Ativando    ");
+  oled_set_text_line(1, "               ");
+  oled_set_text_line(2, "               ");
+  oled_set_text_line(3, "  VU de LEDs   ");
+  oled_set_text_line(4, "               ");
+  oled_set_text_line(5, "               ");
+  oled_set_text_line(6, "               ");
+  oled_set_text_line(7, "               ");
+  oled_render_text();
 
   // ssd1306_write_array(ssd, &frame_area, &text);
   uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_clear();
+  oled_render_text();
 
   npInit(MATRIZ_LED_PIN, MATRIZ_LED_COUNT);
 
@@ -645,22 +450,15 @@ bool start_VU_LED()
 
   if (xReturn != pdPASS)
   {
-    strcpy(text_line_oled[0], "     FALHA     ");
-    strcpy(text_line_oled[1], " AO CRIAR TASK ");
-    strcpy(text_line_oled[2], "      RTOS     ");
-    strcpy(text_line_oled[3], "               ");
-    strcpy(text_line_oled[4], "               ");
-    strcpy(text_line_oled[5], "     VU LEDs   ");
-    strcpy(text_line_oled[6], "               ");
-    strcpy(text_line_oled[7], "               ");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, "     FALHA     ");
+    oled_set_text_line(1, " AO CRIAR TASK ");
+    oled_set_text_line(2, "      RTOS     ");
+    oled_set_text_line(3, "               ");
+    oled_set_text_line(4, "               ");
+    oled_set_text_line(5, "     VU LEDs   ");
+    oled_set_text_line(6, "               ");
+    oled_set_text_line(7, "               ");
+    oled_render_text();
 
     return false;
   }
@@ -679,39 +477,23 @@ bool start_VU_LED()
  */
 void start_bottons_control()
 {
-  strcpy(text_line_oled[0], "   Ativando    ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], " configuracoes ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], "  dos botoes   ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  // ssd1306_write_array(ssd, &frame_area, &text);
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(0, "   Ativando    ");
+  oled_set_text_line(1, "               ");
+  oled_set_text_line(2, "               ");
+  oled_set_text_line(3, " configuracoes ");
+  oled_set_text_line(4, "               ");
+  oled_set_text_line(5, "  dos botoes   ");
+  oled_set_text_line(6, "               ");
+  oled_set_text_line(7, "               ");
+  oled_render_text();
 
   gpio_init(BUTTON_A_PIN);
   gpio_set_dir(BUTTON_A_PIN, GPIO_IN);
   gpio_pull_up(BUTTON_A_PIN);
   gpio_set_irq_enabled_with_callback(BUTTON_A_PIN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &monitor_buttons_callback);
 
-  strcpy(text_line_oled[7], "   Botao A   ");
-
-  // ssd1306_write_array(ssd, &frame_area, &text);
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(7, "   Botao A   ");
+  oled_render_text();
 
   sleep_ms(500);
   gpio_init(BUTTON_B_PIN);
@@ -719,16 +501,8 @@ void start_bottons_control()
   gpio_pull_up(BUTTON_B_PIN);
   gpio_set_irq_enabled_with_callback(BUTTON_B_PIN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &monitor_buttons_callback);
 
-  strcpy(text_line_oled[7], "   Botao B   ");
-
-  // ssd1306_write_array(ssd, &frame_area, &text);
-  y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(7, "   Botao B   ");
+  oled_render_text();
 }
 
 /**
@@ -742,22 +516,15 @@ void start_bottons_control()
  */
 bool start_gpio_and_drone_control()
 {
-  strcpy(text_line_oled[0], " Inicializando ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], "               ");
-  strcpy(text_line_oled[3], "     GPIO      ");
-  strcpy(text_line_oled[4], "               ");
-  strcpy(text_line_oled[5], " DRONE CONTROL ");
-  strcpy(text_line_oled[6], "               ");
-  strcpy(text_line_oled[7], "               ");
-
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(0, " Inicializando ");
+  oled_set_text_line(1, "               ");
+  oled_set_text_line(2, "               ");
+  oled_set_text_line(3, "     GPIO      ");
+  oled_set_text_line(4, "               ");
+  oled_set_text_line(5, " DRONE CONTROL ");
+  oled_set_text_line(6, "               ");
+  oled_set_text_line(7, "               ");
+  oled_render_text();
 
   /////////////////////////////////////////////////////////
   // inicializa e verifica atuadores e sensores do drone //
@@ -776,22 +543,15 @@ bool start_gpio_and_drone_control()
       NULL);
   if (xReturn != pdPASS)
   {
-    strcpy(text_line_oled[0], "     FALHA     ");
-    strcpy(text_line_oled[1], " AO CRIAR TASK ");
-    strcpy(text_line_oled[2], "      RTOS     ");
-    strcpy(text_line_oled[3], "               ");
-    strcpy(text_line_oled[4], "               ");
-    strcpy(text_line_oled[5], " CONTROLE DRONE");
-    strcpy(text_line_oled[6], "               ");
-    strcpy(text_line_oled[7], "               ");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, "     FALHA     ");
+    oled_set_text_line(1, " AO CRIAR TASK ");
+    oled_set_text_line(2, "      RTOS     ");
+    oled_set_text_line(3, "               ");
+    oled_set_text_line(4, "               ");
+    oled_set_text_line(5, " CONTROLE DRONE");
+    oled_set_text_line(6, "               ");
+    oled_set_text_line(7, "               ");
+    oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
     return false;
@@ -806,22 +566,16 @@ bool start_network_infrastructure()
 {
   if (cyw43_arch_init_with_country(CYW43_COUNTRY_BRAZIL))
   {
-    strcpy(text_line_oled[0], "    ATENCAO    ");
-    strcpy(text_line_oled[1], "    FALHA NA   ");
-    strcpy(text_line_oled[2], "               ");
-    strcpy(text_line_oled[3], " Infraestrutra ");
-    strcpy(text_line_oled[4], "    de Rede    ");
-    strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], "     Wi-FI     ");
-    strcpy(text_line_oled[7], "               ");
+    oled_set_text_line(0, "    ATENCAO    ");
+    oled_set_text_line(1, "    FALHA NA   ");
+    oled_set_text_line(2, "               ");
+    oled_set_text_line(3, " Infraestrutra ");
+    oled_set_text_line(4, "    de Rede    ");
+    oled_set_text_line(5, "               ");
+    oled_set_text_line(6, "     Wi-FI     ");
+    oled_set_text_line(7, "               ");
+    oled_render_text();
 
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
     return false;
   }
 
@@ -829,21 +583,17 @@ bool start_network_infrastructure()
   uint8_t count = 0;
   while (count < 3 && cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 10000) != 0)
   {
-    strcpy(text_line_oled[0], "    ATENCAO    ");
-    strcpy(text_line_oled[1], "    FALHA NA   ");
-    strcpy(text_line_oled[2], "               ");
-    strcpy(text_line_oled[3], " Infraestrutra ");
-    strcpy(text_line_oled[4], "    de Rede    ");
-    strcpy(text_line_oled[5], "     Wi-FI     ");
-    strcpy(text_line_oled[6], " NAO CONECTADO ");
-    sprintf(text_line_oled[7], " Tentativa: %02d", ++count);
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, "    ATENCAO    ");
+    oled_set_text_line(1, "    FALHA NA   ");
+    oled_set_text_line(2, "               ");
+    oled_set_text_line(3, " Infraestrutra ");
+    oled_set_text_line(4, "    de Rede    ");
+    oled_set_text_line(5, "     Wi-FI     ");
+    oled_set_text_line(6, " NAO CONECTADO ");
+    char strbuffer[max_text_columns + 1];
+    sprintf(strbuffer, "Tentativa: %02d", ++count);
+    oled_set_text_line(7, strbuffer);
+    oled_render_text();
     sleep_ms(INTER_SCREEN_DELAY / (1.0 / 3));
   }
 
@@ -852,21 +602,17 @@ bool start_network_infrastructure()
 
   // Read the ip address in a human readable way
   uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
-  strcpy(text_line_oled[0], " INICIALIZANDO ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[3], " Infraestrutra ");
-  strcpy(text_line_oled[4], "    de Rede    ");
-  strcpy(text_line_oled[5], "     Wi-FI     ");
-  strcpy(text_line_oled[6], "   CONECTADO   ");
-  strcpy(text_line_oled[2], "               ");
-  sprintf(text_line_oled[7], "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(0, " INICIALIZANDO ");
+  oled_set_text_line(1, "               ");
+  oled_set_text_line(2, " Infraestrutra ");
+  oled_set_text_line(3, "    de Rede    ");
+  oled_set_text_line(4, "     Wi-FI     ");
+  oled_set_text_line(5, "   CONECTADO   ");
+  oled_set_text_line(6, "               ");
+  char strbuffer[max_text_columns+1];
+  sprintf(strbuffer, "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
+  oled_set_text_line(7, strbuffer);
+  oled_render_text();
 
   // Inicia o servidor HTTP
   start_http_server();
@@ -880,28 +626,21 @@ bool start_network_infrastructure()
 
   if (xReturn != pdPASS)
   {
-    strcpy(text_line_oled[0], "     FALHA     ");
-    strcpy(text_line_oled[1], " AO CRIAR TASK ");
-    strcpy(text_line_oled[2], "      RTOS     ");
-    strcpy(text_line_oled[3], "               ");
-    strcpy(text_line_oled[4], "               ");
-    strcpy(text_line_oled[5], " INFRAESTRUTURA");
-    strcpy(text_line_oled[6], "     REDE      ");
-    strcpy(text_line_oled[7], "               ");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, "     FALHA     ");
+    oled_set_text_line(1, " AO CRIAR TASK ");
+    oled_set_text_line(2, "      RTOS     ");
+    oled_set_text_line(3, "               ");
+    oled_set_text_line(4, "               ");
+    oled_set_text_line(5, " INFRAESTRUTURA");
+    oled_set_text_line(6, "     REDE      ");
+    oled_set_text_line(7, "               ");
+    oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
     return false;
   }
   return true;
-}
+} 
 
 // #########################################
 //                WIFI e WEB Server
@@ -912,69 +651,44 @@ static void start_http_server(void)
   struct tcp_pcb *pcb = tcp_new();
   if (!pcb)
   {
-    strcpy(text_line_oled[0], " INICIALIZANDO ");
-    strcpy(text_line_oled[1], "               ");
-    strcpy(text_line_oled[2], " Infraestrutra ");
-    strcpy(text_line_oled[3], "    de Rede    ");
-    strcpy(text_line_oled[4], "     Wi-FI     ");
-    strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], " Erro criando  ");
-    ;
-    strcpy(text_line_oled[7], "      PCB      ");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, " INICIALIZANDO ");
+    oled_set_text_line(1, "               ");
+    oled_set_text_line(2, " Infraestrutra ");
+    oled_set_text_line(3, "    de Rede    ");
+    oled_set_text_line(4, "     Wi-FI     ");
+    oled_set_text_line(5, "               ");
+    oled_set_text_line(6, " Erro criando  ");
+    oled_set_text_line(7, "      PCB      ");
+    oled_render_text();
     return;
   }
 
   // Liga o servidor na porta 80
   if (tcp_bind(pcb, IP_ADDR_ANY, 80) != ERR_OK)
   {
-    strcpy(text_line_oled[0], " INICIALIZANDO ");
-    strcpy(text_line_oled[1], "               ");
-    strcpy(text_line_oled[2], " Infraestrutra ");
-    strcpy(text_line_oled[3], "    de Rede    ");
-    strcpy(text_line_oled[4], "     Wi-FI     ");
-    strcpy(text_line_oled[5], "               ");
-    strcpy(text_line_oled[6], " Erro conectar ");
-    ;
-    strcpy(text_line_oled[7], " serv. porta 80");
-
-    uint8_t y = 0;
-    for (uint i = 0; i < count_of(text_line_oled); i++)
-    {
-      ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-      y += ssd1306_line_height;
-    }
-    render_on_display(ssd, &frame_area);
+    oled_set_text_line(0, " INICIALIZANDO ");
+    oled_set_text_line(1, "               ");
+    oled_set_text_line(2, " Infraestrutra ");
+    oled_set_text_line(3, "    de Rede    ");
+    oled_set_text_line(4, "     Wi-FI     ");
+    oled_set_text_line(5, "               ");
+    oled_set_text_line(6, " Erro conectar ");
+    oled_set_text_line(7, " serv. porta 80");
+    oled_render_text();
     return;
   }
 
   pcb = tcp_listen(pcb);                // Coloca o PCB em modo de escuta
-  tcp_accept(pcb, connection_callback); // Associa o callback de conexão
-
-  strcpy(text_line_oled[0], " INICIALIZANDO ");
-  strcpy(text_line_oled[1], "               ");
-  strcpy(text_line_oled[2], " Infraestrutra ");
-  strcpy(text_line_oled[3], "    de Rede    ");
-  strcpy(text_line_oled[4], "     Wi-FI     ");
-  strcpy(text_line_oled[5], "               ");
-  strcpy(text_line_oled[6], " SERRVIDOR WEB ");
-  ;
-  strcpy(text_line_oled[7], "   CONECTADO   ");
-
-  uint8_t y = 0;
-  for (uint i = 0; i < count_of(text_line_oled); i++)
-  {
-    ssd1306_draw_string(ssd, 5, y, text_line_oled[i]);
-    y += ssd1306_line_height;
-  }
-  render_on_display(ssd, &frame_area);
+  oled_set_text_line(0, " INICIALIZANDO ");
+  oled_set_text_line(1, "               ");
+  oled_set_text_line(2, " Infraestrutra ");
+  oled_set_text_line(3, "    de Rede    ");
+  oled_set_text_line(4, "     Wi-FI     ");
+  oled_set_text_line(5, "               ");
+  oled_set_text_line(6, " SERRVIDOR WEB ");
+  oled_set_text_line(7, "   CONECTADO   ");
+  oled_render_text();
+  return;
 }
 
 // Estado dos botões (inicialmente sem mensagens)
@@ -1142,12 +856,14 @@ static void monitor_buttons_callback(unsigned int gpio, long unsigned int events
     {
       snprintf(button_A_message, sizeof(button_A_message), "Botão A foi pressionado!");
       uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
-      sprintf(text_line_oled[7], "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
+    
+      sprintf(button_A_message, "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
+      oled_set_text_line(7, button_A_message);
     }
     else
     {
       snprintf(button_A_message, sizeof(button_A_message), "Botão A foi solto!");
-      strcpy(text_line_oled[7], "               ");
+      oled_set_text_line(7, "               ");
     }
     uint y = 0;
   }
@@ -1160,13 +876,14 @@ static void monitor_buttons_callback(unsigned int gpio, long unsigned int events
       snprintf(button_B_message, sizeof(button_B_message), "Botão B foi pressionado!");
       modo_local = !modo_local;
       if (modo_local)
-        strcpy(text_line_oled[7], "   modo local  ");
+        oled_set_text_line(7, "   modo local  ");
       else
-        strcpy(text_line_oled[7], "  modo remoto  ");
+        oled_set_text_line(7, "  modo remoto  ");
     }
     else
     {
       snprintf(button_B_message, sizeof(button_B_message), "Botão B foi solto!");
+      oled_set_text_line(7, "               ");
     }
   }
 }

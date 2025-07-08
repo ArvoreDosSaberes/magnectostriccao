@@ -3,27 +3,25 @@
 #include "semphr.h"
 #include "queue.h"
 
-#include "hardware/vreg.h"
+
 #include "hardware/adc.h"
 #include "hardware/dma.h"
-
-#include "inc/neopixel.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 
 #include "inc/magnectostriccao.h"
 #include "tasks_paramiters.h"
 #include "task_adc_with_dma.h"
+#include "oled.h"
 
 extern QueueHandle_t xFFT_Buffer_Queue;
 extern QueueHandle_t xTinyML_Buffer_Queue;
 extern QueueHandle_t xIntensity_Buffer_Queue;
 
 // buffer de texto para o display oled
-extern char text_line_oled[max_text_lines][max_text_columns];
+
 
 // buffer de amostragem do ADC, microfone que coleta o audio
 // os samples devem ser no comprimento equivalente aos segundos
@@ -96,7 +94,7 @@ void task_adc_with_dma(void *pvParameters)
     // realiza a exibição do status da coleta de ruidos
     // Pega a potência média da amostragem do microfone.
     float avg = mic_power();
-    avg = 2.f * abs(ADC_ADJUST(avg)); // Ajusta para intervalo de 0 a 3.3V. (apenas magnitude, sem sinal)
+    avg = 2.f * fabsf(ADC_ADJUST(avg)); // Ajusta para intervalo de 0 a 3.3V. (apenas magnitude, sem sinal)
     printf("AVG: %f\n", avg);
     float db = 20.f * log((avg+0.00001/ADC_MAX)); // Calcula o volume em decibels.
     printf("AVG: %f Volume: %f dB\n", avg, db);
@@ -112,23 +110,27 @@ void task_adc_with_dma(void *pvParameters)
     switch (intensity)
     {
     case 0:
-      memcpy(text_line_oled[3], "    Sem Som    ", max_text_columns);
+      oled_set_text_line(3, "    Sem Som    ");
       printf("Sem Som\n");
       break; // Se o som for muito baixo, não acende nada.
     case 1:
-      memcpy(text_line_oled[3], "   Pouco Som   ", max_text_columns);
+      oled_set_text_line(3, "   Pouco Som   ");
       break;
     case 2:
-      memcpy(text_line_oled[3], "  Nivel ideal  ", max_text_columns);
+      oled_set_text_line(3, "  Nivel ideal  ");
       break;
     case 3:
-      memcpy(text_line_oled[3], "    Alto Som   ", max_text_columns);
+      oled_set_text_line(3, "    Alto Som   ");
       break;
     case 4:
-      memcpy(text_line_oled[3], "Muito Alto Som ", max_text_columns);
+      oled_set_text_line(3, "Muito Alto Som ");
       break;
     }
-    sprintf(text_line_oled[5], "  %02.2f dB    ", db);
+    {
+    char db_line[max_text_columns+1];
+    snprintf(db_line, sizeof(db_line), "  %02.2f dB    ", db);
+    oled_set_text_line(5, db_line);
+}
     
     printf("Antes da pausa Loop Task ADC DMA %d\n", xLastWakeTime);
     xTaskDelayUntil(&xLastWakeTime, TASK_ADC_DMA_DELAY );
