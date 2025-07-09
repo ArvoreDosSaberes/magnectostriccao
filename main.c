@@ -14,6 +14,8 @@
 #include <ctype.h>
 #include "pico/binary_info.h"
 #include "pico/stdlib.h"
+#include <stdio.h>
+#include <string.h>
 #include "pico/cyw43_arch.h"
 #include "hardware/clocks.h"
 
@@ -42,6 +44,8 @@
 #include "tasks/task_vu_leds.h"       // Carrega tarefas do leds de volume
 #include "main.h"                     // carrega cabeçalhos do main
 
+// Function prototypes
+static void monitor_buttons_callback(unsigned int gpio, uint32_t events); // Carrega tarefas do TinyML
 // buffer de texto para o display oled
 // definido no arquivo de tarefas do display oled
 // tasks/task_display_oled.h
@@ -112,14 +116,14 @@ int main()
 
   sleep_ms(INTER_SCREEN_DELAY);
 
-  oled_set_text_line(0, "               ");
-  oled_set_text_line(1, "Inicializando o");
-  oled_set_text_line(2, "               ");
-  oled_set_text_line(3, "  escalonador  ");
-  oled_set_text_line(4, "               ");
-  oled_set_text_line(5, "      de       ");
-  oled_set_text_line(6, "    rarefas    ");
-  oled_set_text_line(7, "               ");
+  oled_set_text_line(0, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(1, "Inicializando o", OLED_ALIGN_CENTER);
+  oled_set_text_line(2, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(3, "escalonador", OLED_ALIGN_CENTER);
+  oled_set_text_line(4, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(5, "de", OLED_ALIGN_CENTER);
+  oled_set_text_line(6, "rarefas", OLED_ALIGN_CENTER);
+  oled_set_text_line(7, "", OLED_ALIGN_CENTER);
   oled_render_text();
 
   vTaskStartScheduler();
@@ -139,14 +143,14 @@ bool start_display_oled()
 
   if (xReturn != pdPASS)
   {
-    oled_set_text_line(0, "     FALHA     ");
-    oled_set_text_line(1, " AO CRIAR TASK ");
-    oled_set_text_line(2, "      RTOS     ");
-    oled_set_text_line(3, "               ");
-    oled_set_text_line(4, "               ");
-    oled_set_text_line(5, " DISPLAY OLED  ");
-    oled_set_text_line(6, "               ");
-    oled_set_text_line(7, "               ");
+    oled_set_text_line(0, "FALHA", OLED_ALIGN_CENTER);
+    oled_set_text_line(1, "AO CRIAR TASK", OLED_ALIGN_CENTER);
+    oled_set_text_line(2, "RTOS", OLED_ALIGN_CENTER);
+    oled_set_text_line(3, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(4, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(5, "DISPLAY OLED", OLED_ALIGN_CENTER);
+    oled_set_text_line(6, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(7, "", OLED_ALIGN_CENTER);
     oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
@@ -215,7 +219,7 @@ void show_intro()
   };
   for (size_t slide = 0; slide < sizeof(slides)/sizeof(slides[0]); ++slide) {
       for (uint8_t i = 0; i < max_text_lines; ++i) {
-          oled_set_text_line(i, slides[slide][i]);
+          oled_set_text_line(i, slides[slide][i], OLED_ALIGN_CENTER);
       }
       oled_render_text();
       sleep_ms(delays[slide]);
@@ -228,14 +232,14 @@ void show_intro()
  */
 bool start_tinyML()
 {
-  oled_set_text_line(0, "   Ativando    ");
-  oled_set_text_line(1, "               ");
-  oled_set_text_line(2, "               ");
-  oled_set_text_line(3, "    TinyML     ");
-  oled_set_text_line(4, "               ");
-  oled_set_text_line(5, " Redes Neurais ");
-  oled_set_text_line(6, "               ");
-  oled_set_text_line(7, "               ");
+  oled_set_text_line(0, "Ativando", OLED_ALIGN_CENTER);
+  oled_set_text_line(1, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(2, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(3, "TinyML", OLED_ALIGN_CENTER);
+  oled_set_text_line(4, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(5, "Redes Neurais", OLED_ALIGN_CENTER);
+  oled_set_text_line(6, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(7, "", OLED_ALIGN_CENTER);
   oled_render_text();
 
   BaseType_t xReturn = xTaskCreate(
@@ -248,14 +252,14 @@ bool start_tinyML()
 
   if (xReturn != pdPASS)
   {
-    oled_set_text_line(0, "     FALHA     ");
-    oled_set_text_line(1, " AO CRIAR TASK ");
-    oled_set_text_line(2, "      RTOS     ");
-    oled_set_text_line(3, "               ");
-    oled_set_text_line(4, "               ");
-    oled_set_text_line(5, "     tinyML    ");
-    oled_set_text_line(6, "               ");
-    oled_set_text_line(7, "               ");
+    oled_set_text_line(0, "FALHA", OLED_ALIGN_CENTER);
+    oled_clear_text_line(1);
+    oled_clear_text_line(2);
+    oled_set_text_line(3, "RTOS", OLED_ALIGN_CENTER);
+    oled_clear_text_line(4);
+    oled_clear_text_line(5);
+    oled_set_text_line(6, "tinyML", OLED_ALIGN_CENTER);
+    oled_clear_text_line(7);
     oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
@@ -269,14 +273,14 @@ bool start_tinyML()
  */
 bool start_fft_filter()
 {
-  oled_set_text_line(0, "   Ativando    ");
-  oled_set_text_line(1, "               ");
-  oled_set_text_line(2, "               ");
-  oled_set_text_line(3, "               ");
-  oled_set_text_line(4, "               ");
-  oled_set_text_line(5, "   FFT filter  ");
-  oled_set_text_line(6, "               ");
-  oled_set_text_line(7, "               ");
+  oled_set_text_line(0, "Ativando", OLED_ALIGN_CENTER);
+  oled_clear_text_line(1);
+  oled_clear_text_line(2);
+  oled_clear_text_line(3);
+  oled_clear_text_line(4);
+  oled_set_text_line(5, "FFT filter", OLED_ALIGN_CENTER);
+  oled_clear_text_line(6);
+  oled_clear_text_line(7);
   oled_render_text();
 
   xTinyML_Buffer_Queue = xQueueCreate(TINYML_QUEUE_LENGTH, (UBaseType_t)ADC_SAMPLES * sizeof(uint16_t));
@@ -291,14 +295,14 @@ bool start_fft_filter()
 
   if (xReturn != pdPASS)
   {
-    oled_set_text_line(0, "     FALHA     ");
-    oled_set_text_line(1, " AO CRIAR TASK ");
-    oled_set_text_line(2, "      RTOS     ");
-    oled_set_text_line(3, "               ");
-    oled_set_text_line(4, "               ");
-    oled_set_text_line(5, "   FFT filter  ");
-    oled_set_text_line(6, "               ");
-    oled_set_text_line(7, "               ");
+    oled_set_text_line(0, "FALHA", OLED_ALIGN_CENTER);
+    oled_clear_text_line(1);
+    oled_clear_text_line(2);
+    oled_set_text_line(3, "RTOS", OLED_ALIGN_CENTER);
+    oled_clear_text_line(4);
+    oled_clear_text_line(5);
+    oled_set_text_line(6, "FFT filter", OLED_ALIGN_CENTER);
+    oled_clear_text_line(7);
     oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
@@ -318,14 +322,14 @@ bool start_fft_filter()
  */
 bool start_ADC_with_DMA()
 {
-  oled_set_text_line(0, "   Ativando    ");
-  oled_set_text_line(1, "               ");
-  oled_set_text_line(2, "      ADC      ");
-  oled_set_text_line(3, "               ");
-  oled_set_text_line(4, "    Por DMA    ");
-  oled_set_text_line(5, "               ");
-  oled_set_text_line(6, "               ");
-  oled_set_text_line(7, "               ");
+  oled_set_text_line(0, "Ativando", OLED_ALIGN_CENTER);
+  oled_clear_text_line(1);
+  oled_set_text_line(2, "ADC", OLED_ALIGN_CENTER);
+  oled_clear_text_line(3);
+  oled_set_text_line(4, "Por DMA", OLED_ALIGN_CENTER);
+  oled_clear_text_line(5);
+  oled_clear_text_line(6);
+  oled_clear_text_line(7);
   oled_render_text();
 
   // ssd1306_write_array(ssd, &frame_area, &text);
@@ -344,14 +348,14 @@ bool start_ADC_with_DMA()
       NULL);
   if (xReturn != pdPASS)
   {
-    oled_set_text_line(0, "     FALHA     ");
-    oled_set_text_line(1, " AO CRIAR TASK ");
-    oled_set_text_line(2, "      RTOS     ");
-    oled_set_text_line(3, "               ");
-    oled_set_text_line(4, "               ");
-    oled_set_text_line(5, "  ADC COM DMA  ");
-    oled_set_text_line(6, "               ");
-    oled_set_text_line(7, "               ");
+    oled_set_text_line(0, "FALHA", OLED_ALIGN_CENTER);
+    oled_clear_text_line(1);
+    oled_set_text_line(2, "RTOS", OLED_ALIGN_CENTER);
+    oled_clear_text_line(3);
+    oled_clear_text_line(4);
+    oled_set_text_line(5, "ADC COM DMA", OLED_ALIGN_CENTER);
+    oled_clear_text_line(6);
+    oled_clear_text_line(7);
     oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
@@ -371,14 +375,14 @@ bool start_ADC_with_DMA()
  */
 bool start_VU_LED()
 {
-  oled_set_text_line(0, "   Ativando    ");
-  oled_set_text_line(1, "               ");
-  oled_set_text_line(2, "               ");
-  oled_set_text_line(3, "  VU de LEDs   ");
-  oled_set_text_line(4, "               ");
-  oled_set_text_line(5, "               ");
-  oled_set_text_line(6, "               ");
-  oled_set_text_line(7, "               ");
+  oled_set_text_line(0, "Ativando", OLED_ALIGN_CENTER);
+  oled_clear_text_line(1);
+  oled_clear_text_line(2);
+  oled_set_text_line(3, "VU de LEDs", OLED_ALIGN_CENTER);
+  oled_clear_text_line(4);
+  oled_clear_text_line(5);
+  oled_clear_text_line(6);
+  oled_clear_text_line(7);
   oled_render_text();
 
   // ssd1306_write_array(ssd, &frame_area, &text);
@@ -479,14 +483,14 @@ bool start_VU_LED()
 
   if (xReturn != pdPASS)
   {
-    oled_set_text_line(0, "     FALHA     ");
-    oled_set_text_line(1, " AO CRIAR TASK ");
-    oled_set_text_line(2, "      RTOS     ");
-    oled_set_text_line(3, "               ");
-    oled_set_text_line(4, "               ");
-    oled_set_text_line(5, "     VU LEDs   ");
-    oled_set_text_line(6, "               ");
-    oled_set_text_line(7, "               ");
+    oled_set_text_line(0, "FALHA", OLED_ALIGN_CENTER);
+    oled_clear_text_line(1);
+    oled_clear_text_line(2);
+    oled_set_text_line(3, "RTOS", OLED_ALIGN_CENTER);
+    oled_clear_text_line(4);
+    oled_clear_text_line(5);
+    oled_set_text_line(6, "VU LEDs", OLED_ALIGN_CENTER);
+    oled_clear_text_line(7);
     oled_render_text();
 
     return false;
@@ -506,14 +510,14 @@ bool start_VU_LED()
  */
 void start_bottons_control()
 {
-  oled_set_text_line(0, "   Ativando    ");
-  oled_set_text_line(1, "               ");
-  oled_set_text_line(2, "               ");
-  oled_set_text_line(3, " configuracoes ");
-  oled_set_text_line(4, "               ");
-  oled_set_text_line(5, "  dos botoes   ");
-  oled_set_text_line(6, "               ");
-  oled_set_text_line(7, "               ");
+  oled_set_text_line(0, "Ativando", OLED_ALIGN_CENTER);
+  oled_clear_text_line(1);
+  oled_clear_text_line(2);
+  oled_set_text_line(3, "configuracoes", OLED_ALIGN_CENTER);
+  oled_clear_text_line(4);
+  oled_set_text_line(5, "dos botoes", OLED_ALIGN_CENTER);
+  oled_clear_text_line(6);
+  oled_clear_text_line(7);
   oled_render_text();
 
   gpio_init(BUTTON_A_PIN);
@@ -521,7 +525,7 @@ void start_bottons_control()
   gpio_pull_up(BUTTON_A_PIN);
   gpio_set_irq_enabled_with_callback(BUTTON_A_PIN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &monitor_buttons_callback);
 
-  oled_set_text_line(7, "   Botao A   ");
+  oled_set_text_line(7, "Botao A", OLED_ALIGN_CENTER);
   oled_render_text();
 
   sleep_ms(500);
@@ -530,7 +534,7 @@ void start_bottons_control()
   gpio_pull_up(BUTTON_B_PIN);
   gpio_set_irq_enabled_with_callback(BUTTON_B_PIN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &monitor_buttons_callback);
 
-  oled_set_text_line(7, "   Botao B   ");
+  oled_set_text_line(7, "Botao B", OLED_ALIGN_CENTER);
   oled_render_text();
 }
 
@@ -545,14 +549,14 @@ void start_bottons_control()
  */
 bool start_gpio_and_drone_control()
 {
-  oled_set_text_line(0, " Inicializando ");
-  oled_set_text_line(1, "               ");
-  oled_set_text_line(2, "               ");
-  oled_set_text_line(3, "     GPIO      ");
-  oled_set_text_line(4, "               ");
-  oled_set_text_line(5, " DRONE CONTROL ");
-  oled_set_text_line(6, "               ");
-  oled_set_text_line(7, "               ");
+  oled_set_text_line(0, "Inicializando", OLED_ALIGN_CENTER);
+  oled_clear_text_line(1);
+  oled_clear_text_line(2);
+  oled_set_text_line(3, "GPIO", OLED_ALIGN_CENTER);
+  oled_clear_text_line(4);
+  oled_set_text_line(5, "DRONE CONTROL", OLED_ALIGN_CENTER);
+  oled_clear_text_line(6);
+  oled_clear_text_line(7);
   oled_render_text();
 
   /////////////////////////////////////////////////////////
@@ -572,14 +576,14 @@ bool start_gpio_and_drone_control()
       NULL);
   if (xReturn != pdPASS)
   {
-    oled_set_text_line(0, "     FALHA     ");
-    oled_set_text_line(1, " AO CRIAR TASK ");
-    oled_set_text_line(2, "      RTOS     ");
-    oled_set_text_line(3, "               ");
-    oled_set_text_line(4, "               ");
-    oled_set_text_line(5, " CONTROLE DRONE");
-    oled_set_text_line(6, "               ");
-    oled_set_text_line(7, "               ");
+    oled_set_text_line(0, "FALHA", OLED_ALIGN_CENTER);
+    oled_clear_text_line(1);
+    oled_clear_text_line(2);
+    oled_set_text_line(3, "RTOS", OLED_ALIGN_CENTER);
+    oled_clear_text_line(4);
+    oled_clear_text_line(5);
+    oled_set_text_line(6, "CONTROLE DRONE", OLED_ALIGN_CENTER);
+    oled_clear_text_line(7);
     oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
@@ -595,14 +599,14 @@ bool start_network_infrastructure()
 {
   if (cyw43_arch_init_with_country(CYW43_COUNTRY_BRAZIL))
   {
-    oled_set_text_line(0, "    ATENCAO    ");
-    oled_set_text_line(1, "    FALHA NA   ");
-    oled_set_text_line(2, "               ");
-    oled_set_text_line(3, " Infraestrutra ");
-    oled_set_text_line(4, "    de Rede    ");
-    oled_set_text_line(5, "               ");
-    oled_set_text_line(6, "     Wi-FI     ");
-    oled_set_text_line(7, "               ");
+    oled_set_text_line(0, "ATENCAO", OLED_ALIGN_CENTER);
+    oled_clear_text_line(1);
+    oled_clear_text_line(2);
+    oled_set_text_line(3, "Infraestrutra", OLED_ALIGN_CENTER);
+    oled_set_text_line(4, "de Rede", OLED_ALIGN_CENTER);
+    oled_clear_text_line(5);
+    oled_set_text_line(6, "Wi-FI", OLED_ALIGN_CENTER);
+    oled_clear_text_line(7);
     oled_render_text();
 
     return false;
@@ -612,16 +616,16 @@ bool start_network_infrastructure()
   uint8_t count = 0;
   while (count < 3 && cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 10000) != 0)
   {
-    oled_set_text_line(0, "    ATENCAO    ");
-    oled_set_text_line(1, "    FALHA NA   ");
-    oled_set_text_line(2, "               ");
-    oled_set_text_line(3, " Infraestrutra ");
-    oled_set_text_line(4, "    de Rede    ");
-    oled_set_text_line(5, "     Wi-FI     ");
-    oled_set_text_line(6, " NAO CONECTADO ");
+    oled_set_text_line(0, "ATENCAO", OLED_ALIGN_CENTER);
+    oled_set_text_line(1, "FALHA NA", OLED_ALIGN_CENTER);
+    oled_set_text_line(2, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(3, "Infraestrutra", OLED_ALIGN_CENTER);
+    oled_set_text_line(4, "de Rede", OLED_ALIGN_CENTER);
+    oled_set_text_line(5, "Wi-FI", OLED_ALIGN_CENTER);
+    oled_set_text_line(6, "NAO CONECTADO", OLED_ALIGN_CENTER);
     char strbuffer[max_text_columns + 1];
     sprintf(strbuffer, "Tentativa: %02d", ++count);
-    oled_set_text_line(7, strbuffer);
+    oled_set_text_line(7, strbuffer, OLED_ALIGN_CENTER);
     oled_render_text();
     sleep_ms(INTER_SCREEN_DELAY / (1.0 / 3));
   }
@@ -631,16 +635,16 @@ bool start_network_infrastructure()
 
   // Read the ip address in a human readable way
   uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
-  oled_set_text_line(0, " INICIALIZANDO ");
-  oled_set_text_line(1, "               ");
-  oled_set_text_line(2, " Infraestrutra ");
-  oled_set_text_line(3, "    de Rede    ");
-  oled_set_text_line(4, "     Wi-FI     ");
-  oled_set_text_line(5, "   CONECTADO   ");
-  oled_set_text_line(6, "               ");
+  oled_set_text_line(0, "INICIALIZANDO", OLED_ALIGN_CENTER);
+  oled_set_text_line(1, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(2, "Infraestrutra", OLED_ALIGN_CENTER);
+  oled_set_text_line(3, "de Rede", OLED_ALIGN_CENTER);
+  oled_set_text_line(4, "Wi-FI", OLED_ALIGN_CENTER);
+  oled_set_text_line(5, "CONECTADO", OLED_ALIGN_CENTER);
+  oled_set_text_line(6, "", OLED_ALIGN_CENTER);
   char strbuffer[max_text_columns+1];
   sprintf(strbuffer, "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
-  oled_set_text_line(7, strbuffer);
+  oled_set_text_line(7, strbuffer, OLED_ALIGN_LEFT);
   oled_render_text();
 
   // Inicia o servidor HTTP
@@ -655,14 +659,14 @@ bool start_network_infrastructure()
 
   if (xReturn != pdPASS)
   {
-    oled_set_text_line(0, "     FALHA     ");
-    oled_set_text_line(1, " AO CRIAR TASK ");
-    oled_set_text_line(2, "      RTOS     ");
-    oled_set_text_line(3, "               ");
-    oled_set_text_line(4, "               ");
-    oled_set_text_line(5, " INFRAESTRUTURA");
-    oled_set_text_line(6, "     REDE      ");
-    oled_set_text_line(7, "               ");
+    oled_set_text_line(0, "FALHA", OLED_ALIGN_CENTER);
+    oled_set_text_line(1, "AO CRIAR TASK", OLED_ALIGN_CENTER);
+    oled_set_text_line(2, "RTOS", OLED_ALIGN_CENTER);
+    oled_set_text_line(3, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(4, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(5, "INFRAESTRUTURA", OLED_ALIGN_CENTER);
+    oled_set_text_line(6, "REDE", OLED_ALIGN_CENTER);
+    oled_set_text_line(7, "", OLED_ALIGN_CENTER);
     oled_render_text();
 
     sleep_ms(INTER_SCREEN_DELAY * 6);
@@ -680,14 +684,14 @@ static void start_http_server(void)
   struct tcp_pcb *pcb = tcp_new();
   if (!pcb)
   {
-    oled_set_text_line(0, " INICIALIZANDO ");
-    oled_set_text_line(1, "               ");
-    oled_set_text_line(2, " Infraestrutra ");
-    oled_set_text_line(3, "    de Rede    ");
-    oled_set_text_line(4, "     Wi-FI     ");
-    oled_set_text_line(5, "               ");
-    oled_set_text_line(6, " Erro criando  ");
-    oled_set_text_line(7, "      PCB      ");
+    oled_set_text_line(0, "INICIALIZANDO", OLED_ALIGN_CENTER);
+    oled_set_text_line(1, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(2, "Infraestrutra", OLED_ALIGN_CENTER);
+    oled_set_text_line(3, "de Rede", OLED_ALIGN_CENTER);
+    oled_set_text_line(4, "Wi-FI", OLED_ALIGN_CENTER);
+    oled_set_text_line(5, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(6, "Erro criando", OLED_ALIGN_CENTER);
+    oled_set_text_line(7, "PCB", OLED_ALIGN_CENTER);
     oled_render_text();
     return;
   }
@@ -695,27 +699,27 @@ static void start_http_server(void)
   // Liga o servidor na porta 80
   if (tcp_bind(pcb, IP_ADDR_ANY, 80) != ERR_OK)
   {
-    oled_set_text_line(0, " INICIALIZANDO ");
-    oled_set_text_line(1, "               ");
-    oled_set_text_line(2, " Infraestrutra ");
-    oled_set_text_line(3, "    de Rede    ");
-    oled_set_text_line(4, "     Wi-FI     ");
-    oled_set_text_line(5, "               ");
-    oled_set_text_line(6, " Erro conectar ");
-    oled_set_text_line(7, " serv. porta 80");
+    oled_set_text_line(0, "INICIALIZANDO", OLED_ALIGN_CENTER);
+    oled_set_text_line(1, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(2, "Infraestrutra", OLED_ALIGN_CENTER);
+    oled_set_text_line(3, "de Rede", OLED_ALIGN_CENTER);
+    oled_set_text_line(4, "Wi-FI", OLED_ALIGN_CENTER);
+    oled_set_text_line(5, "", OLED_ALIGN_CENTER);
+    oled_set_text_line(6, "Erro conectar", OLED_ALIGN_CENTER);
+    oled_set_text_line(7, "serv. porta 80", OLED_ALIGN_CENTER);
     oled_render_text();
     return;
   }
 
   pcb = tcp_listen(pcb);                // Coloca o PCB em modo de escuta
-  oled_set_text_line(0, " INICIALIZANDO ");
-  oled_set_text_line(1, "               ");
-  oled_set_text_line(2, " Infraestrutra ");
-  oled_set_text_line(3, "    de Rede    ");
-  oled_set_text_line(4, "     Wi-FI     ");
-  oled_set_text_line(5, "               ");
-  oled_set_text_line(6, " SERRVIDOR WEB ");
-  oled_set_text_line(7, "   CONECTADO   ");
+  oled_set_text_line(0, "INICIALIZANDO", OLED_ALIGN_CENTER);
+  oled_set_text_line(1, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(2, "Infraestrutra", OLED_ALIGN_CENTER);
+  oled_set_text_line(3, "de Rede", OLED_ALIGN_CENTER);
+  oled_set_text_line(4, "Wi-FI", OLED_ALIGN_CENTER);
+  oled_set_text_line(5, "", OLED_ALIGN_CENTER);
+  oled_set_text_line(6, "SERVIDOR WEB", OLED_ALIGN_CENTER);
+  oled_set_text_line(7, "CONECTADO", OLED_ALIGN_CENTER);
   oled_render_text();
   return;
 }
@@ -887,12 +891,12 @@ static void monitor_buttons_callback(unsigned int gpio, long unsigned int events
       uint8_t *ip_address = (uint8_t *)&(cyw43_state.netif[0].ip_addr.addr);
     
       sprintf(button_A_message, "%03d.%03d.%03d.%03d", ip_address[0], ip_address[1], ip_address[2], ip_address[3]);
-      oled_set_text_line(7, button_A_message);
+      oled_set_text_line(7, button_A_message, OLED_ALIGN_LEFT);
     }
     else
     {
       snprintf(button_A_message, sizeof(button_A_message), "Botão A foi solto!");
-      oled_set_text_line(7, "               ");
+      oled_clear_text_line(7);
     }
     uint y = 0;
   }
@@ -905,14 +909,14 @@ static void monitor_buttons_callback(unsigned int gpio, long unsigned int events
       snprintf(button_B_message, sizeof(button_B_message), "Botão B foi pressionado!");
       modo_local = !modo_local;
       if (modo_local)
-        oled_set_text_line(7, "   modo local  ");
+        oled_set_text_line(7, "modo local", OLED_ALIGN_CENTER);
       else
-        oled_set_text_line(7, "  modo remoto  ");
+        oled_set_text_line(7, "modo remoto", OLED_ALIGN_CENTER);
     }
     else
     {
       snprintf(button_B_message, sizeof(button_B_message), "Botão B foi solto!");
-      oled_set_text_line(7, "               ");
+      oled_clear_text_line(7);
     }
   }
 }

@@ -33,14 +33,14 @@ void task_display_oled(void *pvParameters)
     (void)pvParameters;
 
     vTaskSuspendAll();
-    oled_set_text_line(0, "               ");
-    oled_set_text_line(1, " Nivel do Sinal");
-    oled_set_text_line(2, "               ");
-    oled_set_text_line(3, "               ");
-    oled_set_text_line(4, "               ");
-    oled_set_text_line(5, "               ");
-    oled_set_text_line(6, "               ");
-    oled_set_text_line(7, "               ");
+    oled_clear_text_line(0);
+    oled_set_text_line(1, "Nivel do Sinal", OLED_ALIGN_CENTER);
+    oled_clear_text_line(2);
+    oled_clear_text_line(3);
+    oled_clear_text_line(4);
+    oled_clear_text_line(5);
+    oled_clear_text_line(6);
+    oled_clear_text_line(7);
     xTaskResumeAll();
         
     TickType_t xLastWakeTime = xTaskGetTickCount();

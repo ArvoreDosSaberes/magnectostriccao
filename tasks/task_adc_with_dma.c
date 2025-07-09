@@ -8,7 +8,9 @@
 #include "hardware/dma.h"
 
 #include <stdio.h>
-#include <stdlib.h>
+#include "pico/stdlib.h"
+#include <stdio.h>
+#include <math.h>
 #include <math.h>
 
 #include "inc/magnectostriccao.h"
@@ -110,26 +112,26 @@ void task_adc_with_dma(void *pvParameters)
     switch (intensity)
     {
     case 0:
-      oled_set_text_line(3, "    Sem Som    ");
+      oled_set_text_line(3, "Sem Som", OLED_ALIGN_CENTER);
       printf("Sem Som\n");
       break; // Se o som for muito baixo, não acende nada.
     case 1:
-      oled_set_text_line(3, "   Pouco Som   ");
+      oled_set_text_line(3, "Pouco Som", OLED_ALIGN_CENTER);
       break;
     case 2:
-      oled_set_text_line(3, "  Nivel ideal  ");
+      oled_set_text_line(3, "Nivel ideal", OLED_ALIGN_CENTER);
       break;
     case 3:
-      oled_set_text_line(3, "    Alto Som   ");
+      oled_set_text_line(3, "Alto Som", OLED_ALIGN_CENTER);
       break;
     case 4:
-      oled_set_text_line(3, "Muito Alto Som ");
+      oled_set_text_line(3, "Muito Alto Som", OLED_ALIGN_CENTER);
       break;
     }
     {
     char db_line[max_text_columns+1];
-    snprintf(db_line, sizeof(db_line), "  %02.2f dB    ", db);
-    oled_set_text_line(5, db_line);
+    snprintf(db_line, sizeof(db_line), "%02.2f dB", db);
+    oled_set_text_line(5, db_line, OLED_ALIGN_CENTER);
 }
     
     printf("Antes da pausa Loop Task ADC DMA %d\n", xLastWakeTime);

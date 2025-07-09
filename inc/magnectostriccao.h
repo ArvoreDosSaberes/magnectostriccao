@@ -13,6 +13,11 @@
 #define MATRIZ_LED_PIN 7
 #define MATRIZ_LED_COUNT 25
 
+#include <string.h>
+
+#define max_text_columns 17
+#define font_width 8
+
 // Pino e número de LEDs RGB
 #define LED_PIN_RED 11
 #define LED_PIN_GREEN 12   
