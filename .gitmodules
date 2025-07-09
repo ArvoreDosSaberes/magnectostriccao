@@ -1,3 +1,6 @@
 [submodule "OLED"]
 	path = inc/oled
 	url = git@github.com:arvoredossaberes/oled_ssd1306.git
+[submodule "inc/matrix_neopixel"]
+	path = inc/matrix_neopixel
+	url = git@github.com:ArvoreDosSaberes/matrix_neopixel.git

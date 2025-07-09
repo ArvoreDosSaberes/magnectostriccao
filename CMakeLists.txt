@@ -50,7 +50,7 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(${PROJECT_NAME} main.c  
-        inc/neopixel.c
+        inc/matrix_neopixel/neopixel.c
         inc/oled/ssd1306_i2c.c
         inc/oled/oled.c
         tasks/freeRTOS_helpers.c
@@ -67,7 +67,7 @@ pico_set_program_name(${PROJECT_NAME} "magnectostriccao")
 pico_set_program_version(${PROJECT_NAME} "0.1")
 
 # Generate PIO header
-pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/inc/ws2818b.pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/inc/matrix_neopixel/ws2818b.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(${PROJECT_NAME} 1)
@@ -78,6 +78,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/inc
         ${CMAKE_CURRENT_LIST_DIR}/inc/oled
+        ${CMAKE_CURRENT_LIST_DIR}/inc/matrix_neopixel
 )
 
 include_directories(${INCLUDES})

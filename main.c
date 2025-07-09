@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "inc/neopixel.h"
+#include "inc/matrix_neopixel/neopixel.h"
 
 #include "inc/magnectostriccao.h"   // Carrega parametros gerais do sistema
 #include "tasks/tasks_paramiters.h" // parametros para criação das tasks

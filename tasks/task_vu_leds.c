@@ -5,7 +5,7 @@
 #include "semphr.h"
 #include "queue.h"
 
-#include "inc/neopixel.h"
+#include "inc/matrix_neopixel/neopixel.h"
 
 #include "inc/magnectostriccao.h"
 #include "tasks_paramiters.h"
