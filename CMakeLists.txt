@@ -51,6 +51,9 @@ pico_sdk_init()
 
 add_executable(${PROJECT_NAME} main.c  
         inc/matrix_neopixel/neopixel.c
+        inc/matrix_neopixel/neopixel_effects.c
+        inc/matrix_neopixel/effects/effect_concentric_circles.c
+        inc/matrix_neopixel/effects/effect_pointer.c
         inc/oled/ssd1306_i2c.c
         inc/oled/oled.c
         tasks/freeRTOS_helpers.c
@@ -79,6 +82,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/inc
         ${CMAKE_CURRENT_LIST_DIR}/inc/oled
         ${CMAKE_CURRENT_LIST_DIR}/inc/matrix_neopixel
+        ${CMAKE_CURRENT_LIST_DIR}/inc/matrix_neopixel/effects
 )
 
 include_directories(${INCLUDES})

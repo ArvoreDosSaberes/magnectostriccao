@@ -1,5 +1,6 @@
 /* FreeRTOS includes. */
 #include <FreeRTOS.h>
+#include <pico/time.h>
 #include <task.h>
 #include <queue.h>
 #include <timers.h>
@@ -30,6 +31,7 @@
 #include <stdint.h>
 
 #include "inc/matrix_neopixel/neopixel.h"
+#include "inc/matrix_neopixel/neopixel_effects.h"
 
 #include "inc/magnectostriccao.h"   // Carrega parametros gerais do sistema
 #include "tasks/tasks_paramiters.h" // parametros para criação das tasks
@@ -402,74 +404,12 @@ bool start_VU_LED()
   npSetLED(12, 0, 0, 120); // Acente o centro.
   printf("Acente o centro.\n");
   
-  // Primeiro anel.
-  npSetLED(7, 0, 0, 80);
-  npSetLED(11, 0, 0, 80);
-  npSetLED(13, 0, 0, 80);
-  npSetLED(17, 0, 0, 80);
-  printf("Primeiro anel.\n");
-  npWrite();
-  sleep_ms((500));
+  np_play_effect(EFFECT_CONCENTRIC_CIRCLES);
+  sleep_ms(500);
 
-  // Centro.
-  npSetLED(12, 60, 60, 0);
-  printf("Centro.\n");
-
-  // Primeiro anel.
-  npSetLED(7, 0, 0, 120);
-  npSetLED(11, 0, 0, 120);
-  npSetLED(13, 0, 0, 120);
-  npSetLED(17, 0, 0, 120);
-  printf("Primeiro anel.\n");
-
-  // Segundo anel.
-  npSetLED(2, 0, 0, 80);
-  npSetLED(6, 0, 0, 80);
-  npSetLED(8, 0, 0, 80);
-  npSetLED(10, 0, 0, 80);
-  npSetLED(14, 0, 0, 80);
-  npSetLED(16, 0, 0, 80);
-  npSetLED(18, 0, 0, 80);
-  npSetLED(22, 0, 0, 80);
-  printf("Segundo anel.\n");
-  npWrite();
-  sleep_ms((500));
-
-  // Centro.
-  npSetLED(12, 80, 0, 0);
-  printf("Centro.\n");
-
-  // Primeiro anel.
-  npSetLED(7, 60, 60, 0);
-  npSetLED(11, 60, 60, 0);
-  npSetLED(13, 60, 60, 0);
-  npSetLED(17, 60, 60, 0);
-  printf("Primeiro anel.\n");
-
-  // Segundo anel.
-  npSetLED(2, 0, 0, 120);
-  npSetLED(6, 0, 0, 120);
-  npSetLED(8, 0, 0, 120);
-  npSetLED(10, 0, 0, 120);
-  npSetLED(14, 0, 0, 120);
-  npSetLED(16, 0, 0, 120);
-  npSetLED(18, 0, 0, 120);
-  npSetLED(22, 0, 0, 120);
-  printf("Segundo anel.\n");
-
-  // Terceiro anel.
-  npSetLED(1, 0, 0, 80);
-  npSetLED(3, 0, 0, 80);
-  npSetLED(5, 0, 0, 80);
-  npSetLED(9, 0, 0, 80);
-  npSetLED(15, 0, 0, 80);
-  npSetLED(19, 0, 0, 80);
-  npSetLED(21, 0, 0, 80);
-  npSetLED(23, 0, 0, 80);
-  printf("Terceiro anel.\n");
-  npWrite();
-  sleep_ms((500));
-
+  np_play_effect(EFFECT_POINTER);
+  sleep_ms(500);
+  
   npClear();
   npWrite();
 
